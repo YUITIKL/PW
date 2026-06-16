@@ -99,18 +99,18 @@ export default function Home() {
         };
 
   return (
-    <div className="flex flex-row flex-1 items-center p-5">
+    <div className="flex flex-col md:flex-row flex-1 items-center justify-center p-5">
       {/* Image */}
-      <div className="w-1/2 h-full justify-items-center">
-        <h1 className="text-5xl font-title text-sky-900 font-semibold mb-14">
+      <div className="md:w-1/2 w-full h-full justify-items-center">
+        <h1 className="text-2xl lg:text-5xl font-title text-sky-900 font-semibold mb-6 md:mb-14">
           Lorem Ipsum
         </h1>
-        <Image src={worldSvg} alt="Logo" width={500} />
+        <Image src={worldSvg} alt="Logo" width={500} className="hidden md:flex" />
       </div>
 
       {/* Login */}
-      <div className="flex flex-col border-2 border-sky-900 rounded-lg w-1/2 p-6 mx-10 gap-3">
-        <h2 className="text-2xl font-semibold text-sky-900 font-title">
+      <div className="flex flex-col border-2 border-sky-900 rounded-lg w-full md:w-1/2 p-3 md:p-6 mx-10 gap-2 md:gap-3">
+        <h2 className="text-xl md:text-2xl font-semibold text-sky-900 font-title">
           {labels.title}
         </h2>
 
@@ -176,9 +176,9 @@ export default function Home() {
           <Button full text={labels.button} onClick={submit} />
         </div>
 
-        <hr className="my-5" />
+        <hr className="md:my-5" />
 
-        <p className="text-base text-center font-common">
+        <p className="text-sm md:text-base text-center font-common">
           {labels.changeMode}{" "}
           <span
             className="text-sky-900 hover:text-sky-700 hover:cursor-pointer font-semibold"
