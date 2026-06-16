@@ -7,7 +7,7 @@ export default function Button({
 }: {
   text: string;
   onClick: () => void;
-  type?: "filled" | "void";
+  type?: "filled" | "void" | "delete";
   icon?: React.ReactNode;
   full?: boolean // Occupies 100% of the length
 }) {
@@ -16,9 +16,9 @@ export default function Button({
       onClick={onClick}
       className={`${
         type === "filled"
-          ? "bg-sky-800 text-white hover:bg-sky-800/80 "
-          : "bg-white text-sky-800 hover:bg-sky-800 hover:text-white"
-      } items-center justify-center flex flex-row gap-2 ${full ? "w-full" : "w-fit"} min-w-[90px] border border-sky-800 border-2 transition-all duration-200 ease-out rounded-md px-2.5 py-1.5 font-title font-semibold text-sm cursor-pointer`}
+          ? "bg-sky-800 text-white hover:bg-sky-800/80 border-sky-800"
+          : type === "void" ? "bg-white text-sky-800 hover:bg-sky-800 hover:text-white border-sky-800" : "bg-red-600 text-white hover:bg-red-600/80 border-red-600"
+      } items-center justify-center flex flex-row gap-2 ${full ? "w-full" : "w-fit"} min-w-[90px] border border-2 transition-all duration-200 ease-out rounded-md px-2.5 py-1.5 font-title font-semibold text-sm cursor-pointer`}
     >
       {icon && <>{icon}</>}
       {text}

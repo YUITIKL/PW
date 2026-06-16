@@ -5,8 +5,13 @@ import worldSvg from "@/assets/world.svg";
 import Input from "@/components/Input";
 import { useState } from "react";
 import Button from "@/components/Button";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function InitialScreen() {
+  const { login: setToken } = useAuth();
+  const router = useRouter();
+
   const [login, setLogin] = useState<{ email: string; password: string }>({
     email: "",
     password: "",
@@ -74,14 +79,22 @@ export default function Home() {
       }
     }
 
-    return !Object.values(error).map((msg) => msg.length > 0);
+    return !Object.values(error).some((msg) => msg.length > 0);
   };
 
   const submit = () => {
     if (!validateFields()) return;
+    // REMOVER
+    const mockedToken = "sessionToken123";
 
-    // login
-  }
+    if (initialScreen === "login") {
+      // TODO Chamar endpoint
+    } else {
+      // TODO chamar endpoint
+    }
+    setToken(mockedToken);
+    router.push("/main-page");
+  };
 
   const labels =
     initialScreen === "login"
@@ -105,7 +118,12 @@ export default function Home() {
         <h1 className="text-2xl lg:text-5xl font-title text-sky-900 font-semibold mb-6 md:mb-14">
           Lorem Ipsum
         </h1>
-        <Image src={worldSvg} alt="Logo" width={500} className="hidden md:flex" />
+        <Image
+          src={worldSvg}
+          alt="Logo"
+          width={500}
+          className="hidden md:flex"
+        />
       </div>
 
       {/* Login */}
@@ -183,7 +201,7 @@ export default function Home() {
           <span
             className="text-sky-900 hover:text-sky-700 hover:cursor-pointer font-semibold"
             onClick={() => {
-              clearErrors()
+              clearErrors();
               setInitialScreen(initialScreen === "signup" ? "login" : "signup");
             }}
           >
