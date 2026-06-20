@@ -135,7 +135,12 @@ export default function Profile() {
 
       <Modal
         title="Confirmar exclusão de conta"
-        text="Esta é uma operação irreversível. Você tem certeza que deseja excluir sua conta?"
+        content={
+          <p className="font-common text-base 2xl:text-lg text-justify py-1 md:py-2 pr-2 whitespace-pre-line overflow-auto max-h-[60vh]">
+            Esta é uma operação irreversível. Você tem certeza que deseja
+            excluir sua conta?
+          </p>
+        }
         button={[
           <Button
             key="cancel"

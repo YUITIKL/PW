@@ -3,14 +3,14 @@ import { ReactNode } from "react";
 
 export default function Modal({
   title,
-  text,
+  content,
   button,
   className = "",
   onClose,
   isOpen,
 }: {
   title: string;
-  text: string;
+  content: ReactNode;
   button: ReactNode[];
   className?: string;
   onClose: () => void;
@@ -33,7 +33,7 @@ export default function Modal({
           <div className="fixed inset-0 flex items-center justify-center z-50">
             {/* Modal */}
             <motion.div
-              className={`w-[600px] max-w-[90%] rounded-md overflow-y-hidden ${className}`}
+              className={`w-[600px] max-w-[90%] rounded-md overflow-y-auto ${className}`}
               initial={{ opacity: 0, scale: 0.9, y: 50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 50 }}
@@ -45,9 +45,7 @@ export default function Modal({
                   {title}
                 </h2>
 
-                <p className="font-common text-base 2xl:text-lg text-justify py-1 md:py-2 pr-2 whitespace-pre-line overflow-auto max-h-[60vh]">
-                  {text}
-                </p>
+                {content}
 
                 <div className="mt-3 md:mt-6 flex flex-row gap-3">
                   {button.map((item, i) => {

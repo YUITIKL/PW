@@ -112,102 +112,106 @@ export default function InitialScreen() {
         };
 
   return (
-    <div className="flex flex-col md:flex-row flex-1 items-center justify-center p-5">
-      {/* Image */}
-      <div className="md:w-1/2 w-full h-full justify-items-center">
-        <h1 className="text-2xl lg:text-5xl font-title text-sky-900 font-semibold mb-6 md:mb-14">
-          Lorem Ipsum
-        </h1>
-        <Image
-          src={worldSvg}
-          alt="Logo"
-          width={500}
-          className="hidden md:flex"
-        />
-      </div>
-
-      {/* Login */}
-      <div className="flex flex-col border-2 border-sky-900 rounded-lg w-full md:w-1/2 p-3 md:p-6 mx-10 gap-2 md:gap-3">
-        <h2 className="text-xl md:text-2xl font-semibold text-sky-900 font-title">
-          {labels.title}
-        </h2>
-
-        {initialScreen === "login" ? (
-          <>
-            <Input
-              label="E-mail"
-              value={login.email}
-              onChange={(e) => {
-                setLogin((prev) => ({ ...prev, email: e }));
-              }}
-              error={error.email}
-            />
-            <Input
-              label="Senha"
-              password
-              value={login.password}
-              onChange={(e) => {
-                setLogin((prev) => ({ ...prev, password: e }));
-              }}
-              error={error.password}
-            />
-          </>
-        ) : (
-          <>
-            <Input
-              label="Nome"
-              value={signup.name}
-              onChange={(e) => {
-                setSignup((prev) => ({ ...prev, name: e }));
-              }}
-              error={error.name}
-            />
-            <Input
-              label="E-mail"
-              value={signup.email}
-              onChange={(e) => {
-                setSignup((prev) => ({ ...prev, email: e }));
-              }}
-              error={error.email}
-            />
-            <Input
-              label="Senha"
-              password
-              value={signup.password}
-              onChange={(e) => {
-                setSignup((prev) => ({ ...prev, password: e }));
-              }}
-              error={error.password}
-            />
-            <Input
-              label="Confirme sua senha"
-              password
-              value={signup.confirmPassword}
-              onChange={(e) => {
-                setSignup((prev) => ({ ...prev, confirmPassword: e }));
-              }}
-              error={error.confirmPassword}
-            />
-          </>
-        )}
-        <div className="my-3">
-          <Button full text={labels.button} onClick={submit} />
+    <div className="flex items-center justify-center h-screen">
+      <div className="flex flex-col md:flex-row flex-1 items-center justify-center p-5 2xl:max-w-[1800px] ">
+        {/* Image */}
+        <div className="md:w-1/2 w-full h-full justify-items-center">
+          <h1 className="text-2xl lg:text-5xl font-title text-sky-900 font-semibold mb-6 md:mb-14">
+            Lorem Ipsum
+          </h1>
+          <Image
+            src={worldSvg}
+            alt="Logo"
+            width={500}
+            className="hidden md:flex"
+          />
         </div>
 
-        <hr className="md:my-5" />
+        {/* Login/Sign up */}
+        <div className="flex flex-col border-2 border-sky-900 rounded-lg w-full md:w-1/2 p-3 md:p-6 mx-10 gap-2 md:gap-3">
+          <h2 className="text-xl md:text-2xl font-semibold text-sky-900 font-title">
+            {labels.title}
+          </h2>
 
-        <p className="text-sm md:text-base text-center font-common">
-          {labels.changeMode}{" "}
-          <span
-            className="text-sky-900 hover:text-sky-700 hover:cursor-pointer font-semibold"
-            onClick={() => {
-              clearErrors();
-              setInitialScreen(initialScreen === "signup" ? "login" : "signup");
-            }}
-          >
-            {labels.changeModeButton}
-          </span>
-        </p>
+          {initialScreen === "login" ? (
+            <>
+              <Input
+                label="E-mail"
+                value={login.email}
+                onChange={(e) => {
+                  setLogin((prev) => ({ ...prev, email: e }));
+                }}
+                error={error.email}
+              />
+              <Input
+                label="Senha"
+                password
+                value={login.password}
+                onChange={(e) => {
+                  setLogin((prev) => ({ ...prev, password: e }));
+                }}
+                error={error.password}
+              />
+            </>
+          ) : (
+            <>
+              <Input
+                label="Nome"
+                value={signup.name}
+                onChange={(e) => {
+                  setSignup((prev) => ({ ...prev, name: e }));
+                }}
+                error={error.name}
+              />
+              <Input
+                label="E-mail"
+                value={signup.email}
+                onChange={(e) => {
+                  setSignup((prev) => ({ ...prev, email: e }));
+                }}
+                error={error.email}
+              />
+              <Input
+                label="Senha"
+                password
+                value={signup.password}
+                onChange={(e) => {
+                  setSignup((prev) => ({ ...prev, password: e }));
+                }}
+                error={error.password}
+              />
+              <Input
+                label="Confirme sua senha"
+                password
+                value={signup.confirmPassword}
+                onChange={(e) => {
+                  setSignup((prev) => ({ ...prev, confirmPassword: e }));
+                }}
+                error={error.confirmPassword}
+              />
+            </>
+          )}
+          <div className="my-3">
+            <Button full text={labels.button} onClick={submit} />
+          </div>
+
+          <hr className="md:my-5" />
+
+          <p className="text-sm md:text-base text-center font-common">
+            {labels.changeMode}{" "}
+            <span
+              className="text-sky-900 hover:text-sky-700 hover:cursor-pointer font-semibold"
+              onClick={() => {
+                clearErrors();
+                setInitialScreen(
+                  initialScreen === "signup" ? "login" : "signup"
+                );
+              }}
+            >
+              {labels.changeModeButton}
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );
