@@ -1,0 +1,68 @@
+### Register
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "nome": "Eduardo",
+  "email": "eduardo2@test.com",
+  "password": "123456"
+}
+
+### Login
+POST http://localhost:3001/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "eduardo2@test.com",
+  "password": "123456"
+}
+
+### Get Profile
+GET http://localhost:3001/api/users/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+
+### Update Profile
+PUT http://localhost:3001/api/users/profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+
+{
+  "nome": "Eduardo Heitor"
+}
+
+### Update Password
+PUT http://localhost:3001/api/users/password
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+
+{
+  "currentPassword": "123456",
+  "newPassword": "654321"
+}
+
+### Delete Account
+DELETE http://localhost:3001/api/users/account
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+
+### Create Dashboard (Admin)
+POST http://localhost:3001/api/dashboards
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+
+{
+  "nome": "Análise Temporal",
+  "descricao": "Variação de temperatura ao longo do tempo",
+  "metabase_dashboard_id": 1
+}
+
+### Get All Dashboards
+GET http://localhost:3001/api/dashboards
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+
+### Get My Dashboards
+GET http://localhost:3001/api/dashboards/mine
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+
+### Get Shared With Me
+GET http://localhost:3001/api/dashboards/shared
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
