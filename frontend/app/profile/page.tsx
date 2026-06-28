@@ -7,9 +7,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { TrashIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Toast from "@/components/Toast";
 
 // Layout idêntico ao Input, mas não permite operações
-// Apenas para manter o padrão 
+// Apenas para manter o padrão
 function FakeInput({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col w-full text-black">
@@ -21,7 +22,7 @@ function FakeInput({ value, label }: { value: string; label: string }) {
         </p>
       </div>
       <div
-        className={`flex items-center border bg-white  rounded-sm font-common bg-gray-300 pointer-events-none cursor-not-allowed w-full`}
+        className={`flex items-center border border-gray-300 rounded-sm font-common bg-gray-200 pointer-events-none cursor-not-allowed w-full h-8 py-1 px-1.5`}
       >
         <p>{value}</p>
       </div>
@@ -32,11 +33,21 @@ function FakeInput({ value, label }: { value: string; label: string }) {
 export default function Profile() {
   const { token, logout } = useAuth();
   const router = useRouter();
-
+  
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
-  const [refetch, setRefetch] = useState(0);
 
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+  };
+
+  const [refetch, setRefetch] = useState(0);
+  
   const triggerRefetch = () => setRefetch(refetch + 1);
 
   // Dados modificados
@@ -80,7 +91,7 @@ export default function Profile() {
 
   // Valida se existe usuário logado
   useEffect(() => {
-    if (token === null) router.push("/");
+    if (!token) router.push("/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -88,7 +99,14 @@ export default function Profile() {
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/user/profile");
+        const response = await fetch(
+          "http://localhost:3001/api/users/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) return;
 
@@ -97,6 +115,7 @@ export default function Profile() {
         setData((prev) => ({
           ...prev,
           nome: data.nome,
+          username: data.username,
         }));
 
         setCurrentData({
@@ -107,11 +126,12 @@ export default function Profile() {
         });
       } catch (error) {
         console.error("Erro ao buscar usuário:", error);
+        showToast(`Erro ao buscar usuário: ${error}`, "error");
       }
     };
 
     getUserData();
-  }, [refetch]);
+  }, [refetch, token]);
 
   const validateEmptyField = (field: string) => {
     return field.length > 0;
@@ -125,12 +145,15 @@ export default function Profile() {
     }
 
     if (!validateEmptyField(data.username)) {
-      setError((prev) => ({ ...prev, username: "Username não pode ser vazio" }));
-       return
+      setError((prev) => ({
+        ...prev,
+        username: "Username não pode ser vazio",
+      }));
+      return;
     }
 
     try {
-      const url = "http://localhost:3001/api/user/profile";
+      const url = "http://localhost:3001/api/users/profile";
 
       const body = {
         nome: data.nome,
@@ -141,13 +164,16 @@ export default function Profile() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
 
+      showToast("Perfil atualizado com sucesso", "success");
       triggerRefetch();
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
+      showToast(`Erro ao atualizar perfil: ${error}`, "error");
     }
   };
 
@@ -161,9 +187,9 @@ export default function Profile() {
       setError((prev) => ({ ...prev, currentPassword: "Campo obrigatório" }));
       return;
     }
-    
+
     try {
-      const url = "http://localhost:3001/api/user/password";
+      const url = "http://localhost:3001/api/users/password";
 
       const body = {
         newPassword: data.password,
@@ -174,25 +200,29 @@ export default function Profile() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
       });
 
+      showToast("Senha atualizada com sucesso", "success");
       triggerRefetch();
     } catch (error) {
       console.error("Erro ao atualizar senha:", error);
+      showToast(`Erro ao atualizar senha: ${error}`, "error");
     }
   };
 
   // Inativa perfil
   const handleDeleteProfile = async () => {
     try {
-      const url = "http://localhost:3001/api/user/account";
+      const url = "http://localhost:3001/api/users/account";
 
       await fetch(url, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -207,7 +237,7 @@ export default function Profile() {
     setData((prev) => ({
       ...prev,
       nome: currentData.nome,
-      username: currentData.username
+      username: currentData.username,
     }));
   };
 
@@ -271,7 +301,10 @@ export default function Profile() {
         />
         <Button
           text="Salvar"
-          disabled={currentData.nome === data.nome && currentData.username === data.username}
+          disabled={
+            currentData.nome === data.nome &&
+            currentData.username === data.username
+          }
           onClick={handleUpdateProfile}
         />
       </div>
@@ -360,6 +393,14 @@ export default function Profile() {
         }}
         isOpen={showUpdatePassword}
       />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState } from "react";
 
 type AuthContextType = {
   token: string | null;
@@ -11,39 +11,52 @@ type AuthContextType = {
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
+// Busca o token e id guardados no local storage
+function getStoredAuth() {
+  if (typeof window === "undefined") {
+    return {
+      token: null,
+      userId: null,
+    };
+  }
+
+  return {
+    token: localStorage.getItem("token"),
+    userId: localStorage.getItem("userId"),
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  // Recupera o token ao carregar a aplicação
-  useEffect(() => {
-    const tokenSalvo = localStorage.getItem("token");
-
-    if (tokenSalvo) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setToken(tokenSalvo);
-    }
-  }, []);
+  const [auth, setAuth] = useState<{
+    token: string | null;
+    userId: string | null;
+  }>(() => getStoredAuth());
 
   const login = (novoToken: string, userId: string) => {
     localStorage.setItem("token", novoToken);
-    setToken(novoToken);
     localStorage.setItem("userId", userId);
-    setUserId(userId);
+
+    setAuth({
+      token: novoToken,
+      userId,
+    });
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    setToken(null);
     localStorage.removeItem("userId");
-    setUserId(null);
+
+    setAuth({
+      token: null,
+      userId: null,
+    });
   };
 
   return (
     <AuthContext.Provider
       value={{
-        token,
-        userId,
+        token: auth.token,
+        userId: auth.userId,
         login,
         logout,
       }}

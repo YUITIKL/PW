@@ -12,30 +12,43 @@ export default function InitialScreen() {
   const { login: setToken } = useAuth();
   const router = useRouter();
 
-  const [login, setLogin] = useState<{ email: string; password: string }>({
-    email: "",
+  // Dados para login
+  const [login, setLogin] = useState<{
+    username: string;
+    password: string;
+  }>({
+    username: "",
     password: "",
   });
+
+  // Dados para cadastro
   const [signup, setSignup] = useState<{
     nome: string;
+    username: string;
     email: string;
     password: string;
     confirmPassword: string;
   }>({
     nome: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
+  // Tela atual
   const [initialScreen, setInitialScreen] = useState<"login" | "signup">(
     "login"
   );
+
+  // Erros
   const [errors, setErrors] = useState<{
     nome: string;
+    username: string;
     email: string;
     password: string;
     confirmPassword: string;
-  }>({ nome: "", email: "", password: "", confirmPassword: "" });
+  }>({ nome: "", username: "", email: "", password: "", confirmPassword: "" });
 
   const [fetchError, setFetchError] = useState("");
 
@@ -48,49 +61,65 @@ export default function InitialScreen() {
   };
 
   const clearErrors = () =>
-    setErrors({ nome: "", email: "", password: "", confirmPassword: "" });
+    setErrors({
+      nome: "",
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
 
   const validateFields = () => {
     clearErrors();
-
+    const newErrors = {
+      nome: "",
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    };
     if (initialScreen === "login") {
-      if (!validateEmail(login.email)) {
-        setErrors((prev) => ({ ...prev, email: "E-mail inválido" }));
+      if (!validateEmptyField(login.username)) {
+        newErrors.username = "Campo obrigatório";
       }
+
       if (!validateEmptyField(login.password)) {
-        setErrors((prev) => ({ ...prev, password: "Campo obrigatório" }));
+        newErrors.password = "Campo obrigatório";
       }
     } else {
       if (!validateEmail(signup.email)) {
-        setErrors((prev) => ({ ...prev, email: "E-mail inválido" }));
+        newErrors.email = "E-mail inválido";
       }
+
       if (!validateEmptyField(signup.nome)) {
-        setErrors((prev) => ({ ...prev, nome: "Campo obrigatório" }));
+        newErrors.nome = "Campo obrigatório";
       }
+
+      if (!validateEmptyField(signup.username)) {
+        newErrors.username = "Campo obrigatório";
+      }
+
       if (!validateEmptyField(signup.password)) {
-        setErrors((prev) => ({ ...prev, password: "Campo obrigatório" }));
+        newErrors.password = "Campo obrigatório";
       }
+
       if (!validateEmptyField(signup.confirmPassword)) {
-        setErrors((prev) => ({
-          ...prev,
-          confirmPassword: "Campo obrigatório",
-        }));
+        newErrors.confirmPassword = "Campo obrigatório";
       }
+
       if (signup.password !== signup.confirmPassword) {
-        setErrors((prev) => ({
-          ...prev,
-          confirmPassword: "Senhas devem ser iguais",
-        }));
+        newErrors.confirmPassword = "Senhas devem ser iguais";
       }
     }
 
-    return !Object.values(errors).some((msg) => msg.length > 0);
+    setErrors(newErrors);
+
+    return !Object.values(newErrors).some((msg) => msg.length > 0);
   };
 
   const submit = async () => {
     if (!validateFields()) return;
 
-    // TODO trocar rota
     const url =
       initialScreen === "login"
         ? "http://localhost:3001/api/auth/login"
@@ -99,11 +128,12 @@ export default function InitialScreen() {
     const body =
       initialScreen === "login"
         ? {
-            email: login.email,
+            email: login.username,
             password: login.password,
           }
         : {
             nome: signup.nome,
+            username: signup.username,
             email: signup.email,
             password: signup.password,
           };
@@ -147,7 +177,7 @@ export default function InitialScreen() {
       <div className="flex flex-col md:flex-row flex-1 items-center justify-center p-5 2xl:max-w-[1800px] ">
         {/* Image */}
         <div className="md:w-1/2 w-full h-full justify-items-center">
-          <h1 className="text-2xl lg:text-5xl font-title text-sky-900 font-semibold mb-6 md:mb-14">
+          <h1 className="text-2xl lg:text-5xl font-title text-sky-900 font-semibold mb-2 md:mb-14">
             Lorem Ipsum
           </h1>
           <Image
@@ -164,21 +194,25 @@ export default function InitialScreen() {
             <h2 className="text-xl md:text-2xl font-semibold text-sky-900 font-title">
               {labels.title}
             </h2>
-            <div className={`flex flex-row items-center bg-red-200 h-6 w-full rounded-sm ${fetchError.length === 0 && "opacity-0"}`}>
-              <div className="h-4 rounded-l-xs w-1.5 bg-red-500 m-1" />
-              <p className="text-red-500 text-xs font-semibold">{fetchError}</p>
+            <div
+              className={`flex flex-row items-center h-4 w-full rounded-sm ${
+                fetchError.length === 0 && "opacity-0"
+              }`}
+            >
+              <div className="h-4 rounded-l-xs w-1.5 bg-red-600 mr-1" />
+              <p className="text-red-600 text-xs font-semibold">{fetchError}</p>
             </div>
           </div>
 
           {initialScreen === "login" ? (
             <>
               <Input
-                label="E-mail"
-                value={login.email}
+                label="E-mail ou nome de usuário"
+                value={login.username}
                 onChange={(e) => {
-                  setLogin((prev) => ({ ...prev, email: e }));
+                  setLogin((prev) => ({ ...prev, username: e }));
                 }}
-                error={errors.email}
+                error={errors.username}
               />
               <Input
                 label="Senha"
@@ -199,6 +233,14 @@ export default function InitialScreen() {
                   setSignup((prev) => ({ ...prev, nome: e }));
                 }}
                 error={errors.nome}
+              />
+              <Input
+                label="Nome de usuário"
+                value={signup.username}
+                onChange={(e) => {
+                  setSignup((prev) => ({ ...prev, username: e }));
+                }}
+                error={errors.username}
               />
               <Input
                 label="E-mail"
@@ -232,7 +274,7 @@ export default function InitialScreen() {
             <Button full text={labels.button} onClick={submit} />
           </div>
 
-          <hr className="md:my-5" />
+          <hr className="md:my-2" />
 
           <p className="text-sm md:text-base text-center font-common">
             {labels.changeMode}{" "}

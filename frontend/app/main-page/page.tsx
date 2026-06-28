@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IDashboard } from "../utils/types";
+import Toast from "@/components/Toast";
 
 type Pages = "explore" | "shared" | "favorites";
 
@@ -23,15 +24,28 @@ export default function MainScreen() {
   const [sharedDashboards, setSharedDashboards] = useState<IDashboard[]>([]);
 
   const [refetch, setRefetch] = useState(0);
-  
+
   // Chama novamente os endpoints
   const triggerRefetch = () => setRefetch(refetch + 1);
+
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+  };
 
   // Busca todos os dashboards
   useEffect(() => {
     const getDashboards = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/dashboard");
+        const response = await fetch("http://localhost:3001/api/dashboards", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) return;
 
@@ -40,18 +54,24 @@ export default function MainScreen() {
         setDashboards(data);
       } catch (error) {
         console.error("Erro ao buscar dashboards:", error);
+        showToast(`Erro ao buscar dashboards: ${error}`, "error");
       }
     };
 
     getDashboards();
-  }, [refetch]);
+  }, [refetch, token]);
 
   // Busca todos os dashboards salvos
   useEffect(() => {
     const getSavedDashboards = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3001/api/dashboard/saved"
+          "http://localhost:3001/api/dashboards/saved",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         if (!response.ok) return;
@@ -61,18 +81,24 @@ export default function MainScreen() {
         setSavedDashboards(data);
       } catch (error) {
         console.error("Erro ao buscar dashboards salvos:", error);
+        showToast(`Erro ao buscar dashboards salvos: ${error}`, "error");
       }
     };
 
     getSavedDashboards();
-  }, [refetch]);
+  }, [refetch, token]);
 
   // Busca todos os dashboards compartilhados com o usuário
   useEffect(() => {
     const getSharedDashboards = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3001/api/dashboard/shared"
+          "http://localhost:3001/api/dashboards/shared",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         if (!response.ok) return;
@@ -82,15 +108,16 @@ export default function MainScreen() {
         setSharedDashboards(data);
       } catch (error) {
         console.error("Erro ao buscar dashboards compartilhados:", error);
+        showToast(`Erro ao buscar compartilhados: ${error}`, "error");
       }
     };
 
     getSharedDashboards();
-  }, [refetch]);
+  }, [refetch, token]);
 
   // Valida se existe usuário logado
   useEffect(() => {
-    if (token === null || userId === null) router.push("/");
+    if (!token || !userId) router.push("/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -158,6 +185,14 @@ export default function MainScreen() {
             );
           })}
       </div>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

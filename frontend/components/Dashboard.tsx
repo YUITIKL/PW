@@ -11,6 +11,7 @@ import Modal from "./Modal";
 import Button from "./Button";
 import { ISharedWith, IUser } from "@/app/utils/types";
 import { useAuth } from "@/hooks/useAuth";
+import Toast from "./Toast";
 
 type DashboardProps = {
   sharedBy: string[];
@@ -41,7 +42,7 @@ export default function Dashboard({
   metabase_dashboard_id,
   saved,
 }: DashboardProps) {
-  const { userId } = useAuth();
+  const { userId, token } = useAuth();
 
   // Mouse está em cima do botão de salvo
   const [isHovered, setIsHovered] = useState(false);
@@ -56,6 +57,15 @@ export default function Dashboard({
   // Lista de usuários ativos do sistema
   const [users, setUsers] = useState<IUser[]>([]);
 
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error") => {
+    setToast({ message, type });
+  };
+
   // Gerencia criação e remoção de compartilhamentos
   const handleShares = () => {
     handleShare(selectedUsers.map((u) => u._id));
@@ -65,12 +75,13 @@ export default function Dashboard({
   // Compartilha dashboard
   const handleShare = async (userIds: string[]) => {
     try {
-      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/share`;
+      const url = `http://localhost:3001/api/dashboards/${metabase_dashboard_id}/share`;
 
       await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ userIds }),
       });
@@ -78,18 +89,20 @@ export default function Dashboard({
       refetch();
     } catch (error) {
       console.error("Erro ao compartilhar dashboard:", error);
+      showToast(`Erro ao compartilhar dashboard: ${error}`, "error");
     }
   };
 
   // Gerencia criação e remoção de compartilhamentos
   const handleRemoveShare = async (userIds: string[]) => {
     try {
-      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/share`;
+      const url = `http://localhost:3001/api/dashboards/${metabase_dashboard_id}/share`;
 
       await fetch(url, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ userIds }),
       });
@@ -97,6 +110,7 @@ export default function Dashboard({
       refetch();
     } catch (error) {
       console.error("Erro ao remover compartilhamento de dashboard:", error);
+      showToast(`Erro ao remover compartilhamento de dashboard: ${error}`, "error");
     }
   };
 
@@ -129,36 +143,40 @@ export default function Dashboard({
   const handleSave = async () => {
     if (saved) handleRemoveSave();
     try {
-      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/favorite`;
+      const url = `http://localhost:3001/api/dashboards/${metabase_dashboard_id}/favorite`;
 
       await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
 
       refetch();
     } catch (error) {
       console.error("Erro ao favoritar dashboard:", error);
+      showToast(`Erro ao favoritar dashboard: ${error}`, "error");
     }
   };
 
   // Desfavorita dashboard
   const handleRemoveSave = async () => {
     try {
-      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/favorite`;
+      const url = `http://localhost:3001/api/dashboards/${metabase_dashboard_id}/favorite`;
 
       await fetch(url, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       });
 
       refetch();
     } catch (error) {
       console.error("Erro ao desfavoritar dashboard:", error);
+      showToast(`Erro ao desfavoritar dashboard: ${error}`, "error");
     }
   };
 
@@ -167,7 +185,12 @@ export default function Dashboard({
     const getSharesFromMe = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/shares`
+          `http://localhost:3001/api/dashboards/${metabase_dashboard_id}/shares`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         if (!response.ok) return;
@@ -179,17 +202,22 @@ export default function Dashboard({
         );
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
+        showToast(`Erro ao buscar dados: ${error}`, "error");
       }
     };
 
     getSharesFromMe();
-  }, [metabase_dashboard_id, userId]);
+  }, [metabase_dashboard_id, userId, token]);
 
   // Busca todos os usuários (menos o autenticado)
   useEffect(() => {
     const getUsers = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/user/users`);
+        const response = await fetch(`http://localhost:3001/api/users/users`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) return;
 
@@ -198,11 +226,12 @@ export default function Dashboard({
         setUsers(data);
       } catch (error) {
         console.error("Erro ao buscar usuários:", error);
+        showToast(`Erro ao buscar usuários: ${error}`, "error");
       }
     };
 
     getUsers();
-  }, [metabase_dashboard_id, userId]);
+  }, [metabase_dashboard_id, userId, token]);
 
   return (
     <div className="flex flex-col rounded-md border-gray-100 border-1 shadow-md p-2 w-[450px] max-w-full h-[300px] justify-between">
@@ -341,6 +370,14 @@ export default function Dashboard({
         }}
         isOpen={showSharingModal}
       />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

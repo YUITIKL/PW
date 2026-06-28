@@ -94,7 +94,11 @@ export const updatePassword = async (req: AuthRequest, res: Response): Promise<v
 
 export const deleteAccount = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const user = await User.findByIdAndUpdate(req.userId, { ativo: false });
+        const user = await User.findByIdAndUpdate(req.userId, {
+          ativo: false,
+          email: `deleted_${req.userId}_${Date.now()}@deleted.local`,
+          username: `deleted_${req.userId}_${Date.now()}`,
+        });
 
         if (!user) {
             res.status(404).json({ message: 'Usuário não encontrado' });
