@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
 import { AuthRequest } from '../middlewares/auth';
@@ -18,11 +18,11 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { nome } = req.body;
+        const { nome, username } = req.body;
 
         const user = await User.findByIdAndUpdate(
             req.userId,
-            { nome },
+            { nome, username },
             { new: true }
         ).select('-senha_hash');
 

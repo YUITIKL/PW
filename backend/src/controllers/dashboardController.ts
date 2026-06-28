@@ -5,8 +5,9 @@ import { AuthRequest } from '../middlewares/auth';
 export const getDashboards = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const dashboards = await Dashboard.find({ criado_por: { $ne: req.userId } })
-            .populate('criado_por', 'nome email')
-            .populate('compartilhado_com', 'nome email');
+            .populate('criado_por', 'nome username')
+            .populate('compartilhado_com.from', 'nome username')
+            .populate('compartilhado_com.to', 'nome username');
 
         res.status(200).json(dashboards);
     } catch (error) {
@@ -18,8 +19,9 @@ export const getDashboards = async (req: AuthRequest, res: Response): Promise<vo
 export const getMyDashboards = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const dashboards = await Dashboard.find({ criado_por: req.userId })
-            .populate('criado_por', 'nome email')
-            .populate('compartilhado_com', 'nome email');
+            .populate('criado_por', 'nome username')
+            .populate('compartilhado_com.from', 'nome username')
+            .populate('compartilhado_com.to', 'nome username');
 
         res.status(200).json(dashboards);
     } catch (error) {
@@ -30,9 +32,10 @@ export const getMyDashboards = async (req: AuthRequest, res: Response): Promise<
 
 export const getSharedWithMe = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const dashboards = await Dashboard.find({ compartilhado_com: req.userId })
-            .populate('criado_por', 'nome email')
-            .populate('compartilhado_com', 'nome email');
+        const dashboards = await Dashboard.find({ 'compartilhado_com.to': req.userId })
+            .populate('criado_por', 'nome username')
+            .populate('compartilhado_com.from', 'nome username')
+            .populate('compartilhado_com.to', 'nome username');
 
         res.status(200).json(dashboards);
     } catch (error) {
@@ -51,14 +54,19 @@ export const shareDashboard = async (req: AuthRequest, res: Response): Promise<v
             return;
         }
 
-        const dashboard = await Dashboard.findOneAndUpdate(
-            { _id: id, criado_por: req.userId },
-            { $addToSet: { compartilhado_com: { $each: userIds } } },
+        const newShares = userIds.map((toId: string) => ({
+            from: req.userId,
+            to: toId,
+        }));
+
+        const dashboard = await Dashboard.findByIdAndUpdate(
+            id,
+            { $addToSet: { compartilhado_com: { $each: newShares } } },
             { new: true }
         );
 
         if (!dashboard) {
-            res.status(404).json({ message: 'Dashboard não encontrado ou sem permissão' });
+            res.status(404).json({ message: 'Dashboard não encontrado' });
             return;
         }
 
@@ -79,14 +87,14 @@ export const unshareDashboard = async (req: AuthRequest, res: Response): Promise
             return;
         }
 
-        const dashboard = await Dashboard.findOneAndUpdate(
-            { _id: id, criado_por: req.userId },
-            { $pullAll: { compartilhado_com: userIds } },
+        const dashboard = await Dashboard.findByIdAndUpdate(
+            id,
+            { $pull: { compartilhado_com: { from: req.userId, to: { $in: userIds } } } },
             { new: true }
         );
 
         if (!dashboard) {
-            res.status(404).json({ message: 'Dashboard não encontrado ou sem permissão' });
+            res.status(404).json({ message: 'Dashboard não encontrado' });
             return;
         }
 
@@ -209,11 +217,12 @@ export const getDashboardShares = async (req: AuthRequest, res: Response): Promi
     try {
         const { id } = req.params;
 
-        const dashboard = await Dashboard.findOne({ _id: id, criado_por: req.userId })
-            .populate('compartilhado_com', 'nome email');
+        const dashboard = await Dashboard.findById(id)
+            .populate('compartilhado_com.from', 'nome username')
+            .populate('compartilhado_com.to', 'nome username');
 
         if (!dashboard) {
-            res.status(404).json({ message: 'Dashboard não encontrado ou sem permissão' });
+            res.status(404).json({ message: 'Dashboard não encontrado' });
             return;
         }
 
@@ -227,8 +236,9 @@ export const getDashboardShares = async (req: AuthRequest, res: Response): Promi
 export const getSavedDashboards = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const dashboards = await Dashboard.find({ salvos_por: req.userId })
-            .populate('criado_por', 'nome email')
-            .populate('compartilhado_com', 'nome email');
+            .populate('criado_por', 'nome username')
+            .populate('compartilhado_com.from', 'nome username')
+            .populate('compartilhado_com.to', 'nome username');
 
         res.status(200).json(dashboards);
     } catch (error) {

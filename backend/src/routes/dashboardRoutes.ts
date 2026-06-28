@@ -11,7 +11,7 @@ import {
     favoriteDashboard,
     unfavoriteDashboard,
     getDashboardShares,
-    getSavedDashboards
+    getSavedDashboards,
 } from '../controllers/dashboardController';
 import authMiddleware from '../middlewares/auth';
 

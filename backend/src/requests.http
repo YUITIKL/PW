@@ -1,9 +1,9 @@
 ### Configurações de Variáveis Globais
 @baseUrl = http://localhost:3001/api
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
-@userIdExemplo1 = 6a3db0bfe248b6ecabca7fd4
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNDEyZDQ3ZjRiNjJhNjU3MzVkZmYzZCIsImlhdCI6MTc4MjY1NjMyNywiZXhwIjoxNzgzMjYxMTI3fQ.SkHWSFisrapnEDAVAJfoMQpI7NOzPAsUstQfDt5jMww
+@userIdExemplo1 = 6a412d47f4b62a65735dff3d
 @userIdExemplo2 = 6a4069778f6cc896f157164b
-@dashboardId = 6a4068a48f6cc896f157164a
+@dashboardId = 6a412d9df4b62a65735dff3e
 
 ### Register
 POST {{baseUrl}}/auth/register
@@ -11,7 +11,8 @@ Content-Type: application/json
 
 {
   "nome": "Eduardo",
-  "email": "eduardo2@test.com",
+  "username": "eduardo",
+  "email": "eduardo3@test.com",
   "password": "123456"
 }
 
@@ -25,6 +26,16 @@ Content-Type: application/json
 }
 
 
+### Login com username
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+"email": "eduardoheitor",
+"password": "123456"
+}
+
+
 ### Get Profile
 GET {{baseUrl}}/users/profile
 Authorization: Bearer {{token}}
@@ -35,7 +46,8 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "nome": "Eduardo Heitor"
+  "nome": "Eduardo Heitor",
+  "username": "eduardoheitor"
 }
 
 ### Update Password

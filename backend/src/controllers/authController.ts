@@ -5,11 +5,16 @@ import User from '../models/User';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { nome, email, password } = req.body;
+        const { nome, username, email, password } = req.body;
 
-        const userExists = await User.findOne({ email });
+        if (!nome || !username || !email || !password) {
+            res.status(400).json({ message: 'Todos os campos são obrigatórios' });
+            return;
+        }
+
+        const userExists = await User.findOne({ $or: [{ email }, { username }] });
         if (userExists) {
-            res.status(400).json({ message: 'E-mail já cadastrado' });
+            res.status(400).json({ message: 'E-mail ou username já cadastrado' });
             return;
         }
 
@@ -17,6 +22,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
         const user = await User.create({
             nome,
+            username,
             email,
             senha_hash,
             perfil: 'usuario',
@@ -34,6 +40,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
             user: {
                 id: user._id,
                 nome: user.nome,
+                username: user.username,
                 email: user.email,
                 perfil: user.perfil,
             }
@@ -47,7 +54,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ $or: [{ email }, { username: email }] });
         if (!user) {
             res.status(401).json({ message: 'E-mail ou senha inválidos' });
             return;
@@ -70,6 +77,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             user: {
                 id: user._id,
                 nome: user.nome,
+                username: user.username,
                 email: user.email,
                 perfil: user.perfil,
             }
