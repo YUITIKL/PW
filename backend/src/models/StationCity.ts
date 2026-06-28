@@ -6,8 +6,8 @@ export interface IStationCity extends Document {
 }
 
 const StationCitySchema = new Schema<IStationCity>({
-    codigo_wmo: { type: String, required: true, ref: 'Station' },
-    codigo_ibge: { type: Number, required: true, ref: 'City' },
+    codigo_wmo: { type: String, required: true },
+    codigo_ibge: { type: Number, required: true }
 });
 
 export default mongoose.model<IStationCity>('StationCity', StationCitySchema);

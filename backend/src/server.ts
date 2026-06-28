@@ -5,6 +5,7 @@ import connectDB from './config/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import weatherRoutes from './routes/weatherRoutes';
 
 dotenv.config();
 
@@ -17,12 +18,13 @@ app.use(cors({
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.json({ message: 'API Meteorologia rodando!' });
+    res.json({ message: 'API Meteorologia rodando' });
 });
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboards', dashboardRoutes);
+app.use('/api/weather', weatherRoutes);
 
 connectDB().then(() => {
     app.listen(PORT, () => {

@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface ICity extends Document<number> {
-    _id: number;
+export interface ICity extends Document {
+    codigo_ibge: number;
     cidade: string;
     uf: string;
     regiao: string;
@@ -9,11 +9,11 @@ export interface ICity extends Document<number> {
 }
 
 const CitySchema = new Schema<ICity>({
-    _id: { type: Number, required: true },
+    codigo_ibge: { type: Number, required: true, unique: true },
     cidade: { type: String, required: true },
     uf: { type: String, required: true },
-    regiao: { type: String, required: true },
-    populacao: { type: Number },
+    regiao: { type: String },
+    populacao: { type: Number }
 });
 
 export default mongoose.model<ICity>('City', CitySchema);

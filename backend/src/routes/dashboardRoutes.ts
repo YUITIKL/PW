@@ -8,19 +8,26 @@ import {
     deleteDashboard,
     createDashboard,
     updateDashboard,
+    favoriteDashboard,
+    unfavoriteDashboard,
+    getDashboardShares,
+    getSavedDashboards
 } from '../controllers/dashboardController';
 import authMiddleware from '../middlewares/auth';
 
 const router = Router();
 
-// Rotas de usuário comum
 router.get('/', authMiddleware, getDashboards);
 router.get('/mine', authMiddleware, getMyDashboards);
 router.get('/shared', authMiddleware, getSharedWithMe);
+router.get('/saved', authMiddleware, getSavedDashboards);
+
 router.post('/:id/share', authMiddleware, shareDashboard);
 router.delete('/:id/share', authMiddleware, unshareDashboard);
+router.post('/:id/favorite', authMiddleware, favoriteDashboard);
+router.delete('/:id/favorite', authMiddleware, unfavoriteDashboard);
+router.get('/:id/shares', authMiddleware, getDashboardShares);
 
-// Rotas admin
 router.post('/', authMiddleware, createDashboard);
 router.put('/:id', authMiddleware, updateDashboard);
 router.delete('/:id', authMiddleware, deleteDashboard);

@@ -1,5 +1,12 @@
+### Configurações de Variáveis Globais
+@baseUrl = http://localhost:3001/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+@userIdExemplo1 = 6a3db0bfe248b6ecabca7fd4
+@userIdExemplo2 = 6a4069778f6cc896f157164b
+@dashboardId = 6a4068a48f6cc896f157164a
+
 ### Register
-POST http://localhost:3001/api/auth/register
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
@@ -9,7 +16,7 @@ Content-Type: application/json
 }
 
 ### Login
-POST http://localhost:3001/api/auth/login
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
@@ -17,37 +24,50 @@ Content-Type: application/json
   "password": "123456"
 }
 
+
 ### Get Profile
-GET http://localhost:3001/api/users/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{token}}
 
 ### Update Profile
-PUT http://localhost:3001/api/users/profile
+PUT {{baseUrl}}/users/profile
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+Authorization: Bearer {{token}}
 
 {
   "nome": "Eduardo Heitor"
 }
 
 ### Update Password
-PUT http://localhost:3001/api/users/password
+PUT {{baseUrl}}/users/password
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+Authorization: Bearer {{token}}
 
 {
   "currentPassword": "123456",
   "newPassword": "654321"
 }
 
-### Delete Account
-DELETE http://localhost:3001/api/users/account
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+### Delete Account (Soft Delete)
+DELETE {{baseUrl}}/users/account
+Authorization: Bearer {{token}}
+
+### Get All / Explorar (Dashboards de outros usuários)
+GET {{baseUrl}}/dashboards
+Authorization: Bearer {{token}}
+
+### Get My Dashboards (Criados por mim / Admin)
+GET {{baseUrl}}/dashboards/mine
+Authorization: Bearer {{token}}
+
+### Get Shared With Me (Compartilhados comigo)
+GET {{baseUrl}}/dashboards/shared
+Authorization: Bearer {{token}}
 
 ### Create Dashboard (Admin)
-POST http://localhost:3001/api/dashboards
+POST {{baseUrl}}/dashboards
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+Authorization: Bearer {{token}}
 
 {
   "nome": "Análise Temporal",
@@ -55,14 +75,55 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZ
   "metabase_dashboard_id": 1
 }
 
-### Get All Dashboards
-GET http://localhost:3001/api/dashboards
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+### Update Dashboard (Admin)
+PUT {{baseUrl}}/dashboards/{{dashboardId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
 
-### Get My Dashboards
-GET http://localhost:3001/api/dashboards/mine
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+{
+  "nome": "Análise Temporal Atualizada",
+  "descricao": "Nova descrição para o gráfico de clima"
+}
 
-### Get Shared With Me
-GET http://localhost:3001/api/dashboards/shared
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhM2RiMGJmZTI0OGI2ZWNhYmNhN2ZkNCIsImlhdCI6MTc4MjQyNzgzOSwiZXhwIjoxNzgzMDMyNjM5fQ.GWlPI5vrdi7E3Zcb8WhHz8fV_8pR4Pte6Ylv8AbCONY
+### Delete Dashboard (Admin)
+DELETE {{baseUrl}}/dashboards/{{dashboardId}}
+Authorization: Bearer {{token}}
+
+### Verificar Compartilhamentos (Quem tem acesso a este painel?)
+GET {{baseUrl}}/dashboards/{{dashboardId}}/shares
+Authorization: Bearer {{token}}
+
+### Compartilhar em Lote (Adiciona uma lista de usuários)
+POST {{baseUrl}}/dashboards/{{dashboardId}}/share
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userIds": [
+    "{{userIdExemplo1}}",
+    "{{userIdExemplo2}}"
+  ]
+}
+
+### Remover Compartilhamento em Lote (Remove uma lista de usuários)
+DELETE {{baseUrl}}/dashboards/{{dashboardId}}/share
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userIds": [
+    "{{userIdExemplo1}}",
+    "{{userIdExemplo2}}"
+  ]
+}
+
+### Favoritar / Salvar Dashboard
+POST {{baseUrl}}/dashboards/{{dashboardId}}/favorite
+Authorization: Bearer {{token}}
+
+### Remover dos Favoritos
+DELETE {{baseUrl}}/dashboards/{{dashboardId}}/favorite
+Authorization: Bearer {{token}}
+
+### Buscar Medições com Filtro de Cidade e Período de Datas
+GET {{baseUrl}}/weather?cidade=Florianopolis&dataInicio=2026-01-01&dataFim=2026-01-31
