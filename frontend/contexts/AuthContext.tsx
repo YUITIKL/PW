@@ -4,18 +4,16 @@ import { createContext, useEffect, useState } from "react";
 
 type AuthContextType = {
   token: string | null;
-  login: (token: string) => void;
+  userId: string | null;
+  login: (token: string, userId: string) => void;
   logout: () => void;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Recupera o token ao carregar a aplicação
   useEffect(() => {
@@ -27,20 +25,25 @@ export function AuthProvider({
     }
   }, []);
 
-  const login = (novoToken: string) => {
+  const login = (novoToken: string, userId: string) => {
     localStorage.setItem("token", novoToken);
     setToken(novoToken);
+    localStorage.setItem("userId", userId);
+    setUserId(userId);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
+    localStorage.removeItem("userId");
+    setUserId(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
         token,
+        userId,
         login,
         logout,
       }}

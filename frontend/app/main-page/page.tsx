@@ -5,134 +5,92 @@ import Tabs from "@/components/Tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DashboardProps, mockedUsers } from "../utils/types";
+import { IDashboard } from "../utils/types";
 
 type Pages = "explore" | "shared" | "favorites";
 
 export default function MainScreen() {
-  const { token } = useAuth();
+  const { token, userId } = useAuth();
   const router = useRouter();
 
+  // Tab atual
   const [currentPage, setCurrentPage] = useState<Pages>("explore");
+  // Todos os dashboards cadastrados
+  const [dashboards, setDashboards] = useState<IDashboard[]>([]);
+  // Dashboards salvos pelo usuário
+  const [savedDashboards, setSavedDashboards] = useState<IDashboard[]>([]);
+  // Dashboards compartilhados com o usuário
+  const [sharedDashboards, setSharedDashboards] = useState<IDashboard[]>([]);
 
-  const mockedExplorarData: DashboardProps[] = [
-    {
-      saved: false,
-    },
-    {
-      saved: true,
-      sharedWith: [mockedUsers[1]]
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: true,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: false,
-    },
-    {
-      saved: true,
-    },
-  ];
+  const [refetch, setRefetch] = useState(0);
+  
+  // Chama novamente os endpoints
+  const triggerRefetch = () => setRefetch(refetch + 1);
 
-  const mockedSharedData: DashboardProps[] = [
-    {
-      saved: false,
-      sharedBy: [mockedUsers[0], mockedUsers[1]],
-      sharedWith: [mockedUsers[4]]
-    },
-    {
-      saved: true,
-      sharedBy: [mockedUsers[3], mockedUsers[5]],
-    },
-    {
-      saved: false,
-      sharedBy: [mockedUsers[1]],
-    },
-    {
-      saved: false,
-      sharedBy: [mockedUsers[7]],
-    },
-    {
-      saved: false,
-      sharedBy: [mockedUsers[9]],
-    },
-    {
-      saved: false,
-      sharedBy: [mockedUsers[8]],
-    },
-    {
-      saved: false,
-      sharedBy: [mockedUsers[1]],
-    },
-    {
-      saved: false,
-      sharedBy: [mockedUsers[5]],
-    },
-  ];
-
-  const mockedFavoriteData: DashboardProps[] = [
-    {
-      saved: true,
-    },
-    {
-      saved: true,
-    },
-    {
-      saved: true,
-      sharedBy: [mockedUsers[1], mockedUsers[6]],
-    },
-    {
-      saved: true,
-      sharedBy: [mockedUsers[6]],
-    },
-    {
-      saved: true,
-    },
-    {
-      saved: true,
-      sharedWith: [mockedUsers[9],mockedUsers[1] ]
-    },
-
-    {
-      saved: true,
-      sharedBy: [mockedUsers[9]],
-    },
-    {
-      saved: true,
-    },
-  ];
+  // Busca todos os dashboards
   useEffect(() => {
-    if (token === null) router.push("/");
+    const getDashboards = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/dashboard");
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setDashboards(data);
+      } catch (error) {
+        console.error("Erro ao buscar dashboards:", error);
+      }
+    };
+
+    getDashboards();
+  }, [refetch]);
+
+  // Busca todos os dashboards salvos
+  useEffect(() => {
+    const getSavedDashboards = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3001/api/dashboard/saved"
+        );
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setSavedDashboards(data);
+      } catch (error) {
+        console.error("Erro ao buscar dashboards salvos:", error);
+      }
+    };
+
+    getSavedDashboards();
+  }, [refetch]);
+
+  // Busca todos os dashboards compartilhados com o usuário
+  useEffect(() => {
+    const getSharedDashboards = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3001/api/dashboard/shared"
+        );
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setSharedDashboards(data);
+      } catch (error) {
+        console.error("Erro ao buscar dashboards compartilhados:", error);
+      }
+    };
+
+    getSharedDashboards();
+  }, [refetch]);
+
+  // Valida se existe usuário logado
+  useEffect(() => {
+    if (token === null || userId === null) router.push("/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -152,35 +110,50 @@ export default function MainScreen() {
       {/* Dashboards */}
       <div className="grid grid-cols-1 md:grid-cols-2  2xl:grid-cols-4 gap-5">
         {currentPage === "explore" &&
-          mockedExplorarData.map((dashboard, i) => {
+          dashboards.map((dashboard, i) => {
             return (
               <Dashboard
-                saved={dashboard.saved}
-                sharedBy={dashboard.sharedBy}
-                sharedWith={dashboard.sharedWith}
+                saved={dashboard.salvos_por
+                  .map((dashboard) => dashboard._id)
+                  .includes(userId!)}
+                sharedBy={dashboard.compartilhado_com
+                  .filter((shares) => shares.to._id === userId)
+                  .map((shares) => shares.from.username)}
                 key={`${i}-explore`}
+                refetch={triggerRefetch}
+                metabase_dashboard_id={dashboard.metabase_dashboard_id}
               />
             );
           })}
 
         {currentPage === "shared" &&
-          mockedSharedData.map((dashboard, i) => {
+          sharedDashboards.map((dashboard, i) => {
             return (
               <Dashboard
-                saved={dashboard.saved}
-                sharedBy={dashboard.sharedBy}
+                saved={dashboard.salvos_por
+                  .map((dashboard) => dashboard._id)
+                  .includes(userId!)}
+                sharedBy={dashboard.compartilhado_com
+                  .filter((shares) => shares.to._id === userId)
+                  .map((shares) => shares.from.username)}
                 key={`${i}-shared`}
+                refetch={triggerRefetch}
+                metabase_dashboard_id={dashboard.metabase_dashboard_id}
               />
             );
           })}
 
         {currentPage === "favorites" &&
-          mockedFavoriteData.map((dashboard, i) => {
+          savedDashboards.map((dashboard, i) => {
             return (
               <Dashboard
-                saved={dashboard.saved}
-                sharedBy={dashboard.sharedBy}
+                saved={true}
+                sharedBy={dashboard.compartilhado_com
+                  .filter((shares) => shares.to._id === userId)
+                  .map((shares) => shares.from.username)}
                 key={`${i}-favorite`}
+                refetch={triggerRefetch}
+                metabase_dashboard_id={dashboard.metabase_dashboard_id}
               />
             );
           })}

@@ -8,78 +8,207 @@ import { TrashIcon } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+// Layout idêntico ao Input, mas não permite operações
+// Apenas para manter o padrão 
+function FakeInput({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col w-full text-black">
+      <div className="flex flex-row items-center justify-between w-full">
+        <p
+          className={`font-common text-sm font-semibold mb-2 text-gray-600 min-w-[250px]`}
+        >
+          {label}
+        </p>
+      </div>
+      <div
+        className={`flex items-center border bg-white  rounded-sm font-common bg-gray-300 pointer-events-none cursor-not-allowed w-full`}
+      >
+        <p>{value}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Profile() {
   const { token, logout } = useAuth();
   const router = useRouter();
 
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [refetch, setRefetch] = useState(0);
 
+  const triggerRefetch = () => setRefetch(refetch + 1);
+
+  // Dados modificados
   const [data, setData] = useState<{
-    name: string;
+    nome: string;
     username: string;
-    email: string;
+    password: string;
+    currentPassword: string;
   }>({
-    name: "",
+    nome: "",
     username: "",
-    email: "",
+    password: "",
+    currentPassword: "",
   });
 
+  // Dados do usuário salvos no banco
+  const [currentData, setCurrentData] = useState<{
+    nome: string;
+    email: string;
+    username: string;
+    dataCadastro: Date;
+  }>({
+    nome: "",
+    email: "",
+    username: "",
+    dataCadastro: new Date(),
+  });
+
+  // Erros
   const [error, setError] = useState<{
-    name: string;
+    nome: string;
     username: string;
-    email: string;
+    password: string;
+    currentPassword: string;
   }>({
-    name: "",
+    nome: "",
     username: "",
-    email: "",
+    password: "",
+    currentPassword: "",
   });
 
+  // Valida se existe usuário logado
   useEffect(() => {
     if (token === null) router.push("/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // TODO preencher default com dados da conta
+  // Busca os dados salvos do usuário
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/user/profile");
 
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setData((prev) => ({
+          ...prev,
+          nome: data.nome,
+        }));
+
+        setCurrentData({
+          nome: data.nome,
+          username: data.username,
+          email: data.email,
+          dataCadastro: data.data_cadastro,
+        });
+      } catch (error) {
+        console.error("Erro ao buscar usuário:", error);
+      }
+    };
+
+    getUserData();
+  }, [refetch]);
 
   const validateEmptyField = (field: string) => {
     return field.length > 0;
   };
 
-  const clearErrors = () => setError({ name: "", email: "", username: "" });
-
-  const validateFields = () => {
-    clearErrors();
-
-    if (!validateEmail(data.email)) {
-      setError((prev) => ({ ...prev, email: "E-mail inválido" }));
+  // Atualiza perfil
+  const handleUpdateProfile = async () => {
+    if (!validateEmptyField(data.nome)) {
+      setError((prev) => ({ ...prev, nome: "Nome não pode ser vazio" }));
+      return;
     }
-    if (!validateEmptyField(data.name)) {
-      setError((prev) => ({ ...prev, name: "Campo obrigatório" }));
-    }
+
     if (!validateEmptyField(data.username)) {
-      setError((prev) => ({ ...prev, password: "Campo obrigatório" }));
+      setError((prev) => ({ ...prev, username: "Username não pode ser vazio" }));
+       return
     }
 
-    return !Object.values(error).some((msg) => msg.length > 0);
+    try {
+      const url = "http://localhost:3001/api/user/profile";
+
+      const body = {
+        nome: data.nome,
+        username: data.username,
+      };
+
+      await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      triggerRefetch();
+    } catch (error) {
+      console.error("Erro ao atualizar perfil:", error);
+    }
   };
 
-  const submit = () => {
-    if (!validateFields()) return;
-    // TODO Chamar endpoint
+  // Atualiza senha
+  const handleUpdatePassword = async () => {
+    if (!validateEmptyField(data.password)) {
+      setError((prev) => ({ ...prev, password: "Campo obrigatório" }));
+      return;
+    }
+    if (!validateEmptyField(data.currentPassword)) {
+      setError((prev) => ({ ...prev, currentPassword: "Campo obrigatório" }));
+      return;
+    }
+    
+    try {
+      const url = "http://localhost:3001/api/user/password";
+
+      const body = {
+        newPassword: data.password,
+        currentPassword: data.currentPassword,
+      };
+
+      await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      triggerRefetch();
+    } catch (error) {
+      console.error("Erro ao atualizar senha:", error);
+    }
   };
 
+  // Inativa perfil
+  const handleDeleteProfile = async () => {
+    try {
+      const url = "http://localhost:3001/api/user/account";
+
+      await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      logout();
+    } catch (error) {
+      console.error("Erro ao deletar conta:", error);
+    }
+  };
+
+  // Reseta campos
   const reset = () => {
-    // Resetar os campos com os dados da api
-  };
-
-  const deleteProfile = () => {
-    console.log("delete");
-    logout();
-    // TODO
+    setData((prev) => ({
+      ...prev,
+      nome: currentData.nome,
+      username: currentData.username
+    }));
   };
 
   return (
@@ -96,11 +225,11 @@ export default function Profile() {
       <div className="flex flex-col gap-4 w-full">
         <Input
           label="Nome"
-          value={data.name}
+          value={data.nome}
           onChange={(e) => {
-            setData((prev) => ({ ...prev, name: e }));
+            setData((prev) => ({ ...prev, nome: e }));
           }}
-          error={error.name}
+          error={error.nome}
         />
         <Input
           label="Nome de usuário"
@@ -110,13 +239,17 @@ export default function Profile() {
           }}
           error={error.username}
         />
-        <Input
-          label="E-mail"
-          value={data.email}
-          onChange={(e) => {
-            setData((prev) => ({ ...prev, email: e }));
-          }}
-          error={error.email}
+        <FakeInput label="E-mail" value={currentData.email} />
+        <FakeInput
+          label="Data de cadastro"
+          value={new Date(currentData.dataCadastro).toLocaleDateString(
+            "pt-BR",
+            {
+              day: "2-digit",
+              month: "2-digit",
+              year: "2-digit",
+            }
+          )}
         />
       </div>
 
@@ -130,9 +263,20 @@ export default function Profile() {
           icon={<TrashIcon size={16} className="text-white" weight="bold" />}
         />
         <Button text="Descartar alterações" onClick={reset} />
-        <Button text="Salvar" onClick={submit} />
+        <Button
+          text="Trocar senha"
+          onClick={() => {
+            setShowUpdatePassword(true);
+          }}
+        />
+        <Button
+          text="Salvar"
+          disabled={currentData.nome === data.nome && currentData.username === data.username}
+          onClick={handleUpdateProfile}
+        />
       </div>
 
+      {/* Modal confirmação para excluir conta */}
       <Modal
         title="Confirmar exclusão de conta"
         content={
@@ -153,7 +297,7 @@ export default function Profile() {
             key="confirm"
             text="Excluir conta"
             onClick={() => {
-              deleteProfile();
+              handleDeleteProfile();
               setShowConfirmation(false);
             }}
             type="delete"
@@ -163,6 +307,58 @@ export default function Profile() {
           setShowConfirmation(false);
         }}
         isOpen={showConfirmation}
+      />
+
+      {/* Modal para atualização de senha */}
+      <Modal
+        title="Alterar senha"
+        content={
+          <div className="flex flex-col gap-2">
+            <p className="font-common text-base text-justify pb-1 md:pb-2 pr-2 whitespace-pre-line overflow-auto max-h-[60vh]">
+              Complete os campos abaixo com a senha atual da conta e a nova
+              senha.
+            </p>
+            <Input
+              label="Senha atual"
+              password
+              value={data.currentPassword}
+              onChange={(e) => {
+                setData((prev) => ({ ...prev, currentPassword: e }));
+              }}
+              error={error.currentPassword}
+            />
+            <Input
+              label="Nova senha"
+              password
+              value={data.password}
+              onChange={(e) => {
+                setData((prev) => ({ ...prev, password: e }));
+              }}
+              error={error.password}
+            />
+          </div>
+        }
+        button={[
+          <Button
+            key="cancel"
+            text="Cancelar"
+            onClick={() => {
+              setShowUpdatePassword(false);
+            }}
+          />,
+          <Button
+            key="confirm"
+            text="Salvar"
+            onClick={() => {
+              handleUpdatePassword();
+              setShowUpdatePassword(false);
+            }}
+          />,
+        ]}
+        onClose={() => {
+          setShowUpdatePassword(false);
+        }}
+        isOpen={showUpdatePassword}
       />
     </div>
   );

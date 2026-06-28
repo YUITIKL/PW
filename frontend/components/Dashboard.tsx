@@ -9,12 +9,19 @@ import {
 import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import Button from "./Button";
-import { DashboardProps, mockedUsers, User } from "@/app/utils/types";
+import { ISharedWith, IUser } from "@/app/utils/types";
+import { useAuth } from "@/hooks/useAuth";
+
+type DashboardProps = {
+  sharedBy: string[];
+  saved: boolean;
+  metabase_dashboard_id: number;
+  refetch: () => void;
+};
 
 function MetabaseDashboard({ dashboardId }: { dashboardId: number }) {
   const [url, setUrl] = useState("");
 
-  // TODO adaptar conforme backend
   useEffect(() => {
     fetch(`/api/metabase/dashboard/${dashboardId}`)
       .then((res) => res.json())
@@ -30,48 +37,75 @@ function MetabaseDashboard({ dashboardId }: { dashboardId: number }) {
 
 export default function Dashboard({
   sharedBy,
-  sharedWith,
+  refetch,
+  metabase_dashboard_id,
   saved,
 }: DashboardProps) {
+  const { userId } = useAuth();
+
+  // Mouse está em cima do botão de salvo
   const [isHovered, setIsHovered] = useState(false);
+  // Gerencia renderização do modal de compartilhamento
   const [showSharingModal, setShowSharingModal] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
-  const [cancelShare, setCancelShare] = useState<User[]>([]);
-  // TODO linkar com metabase dashboard
+  // Usuários para compartilhar o dashboard (lista local)
+  const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
+  // Usuários para cancelar o compartilhamento do dashboard (lista local)
+  const [cancelShare, setCancelShare] = useState<IUser[]>([]);
+  // Usuários com quem já foi compartilhado o dashboard
+  const [sharedWith, setSharedWith] = useState<IUser[]>([]);
+  // Lista de usuários ativos do sistema
+  const [users, setUsers] = useState<IUser[]>([]);
 
-  const handleGetUsers = () => {
-    // TODO
-    return mockedUsers;
+  // Gerencia criação e remoção de compartilhamentos
+  const handleShares = () => {
+    handleShare(selectedUsers.map((u) => u._id));
+    handleRemoveShare(cancelShare.map((u) => u._id));
   };
 
-  const handleShare = () => {
-    // TODO
-  };
+  // Compartilha dashboard
+  const handleShare = async (userIds: string[]) => {
+    try {
+      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/share`;
 
-  const handleRemoveShare = (user: User) => {
-    // TODO
-    let removedShares = [...cancelShare];
-    if (cancelShare.map((u) => u.id).includes(user.id)) {
-      removedShares = removedShares.filter((u) => u.id !== user.id);
-    } else {
-      removedShares.push(user);
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userIds }),
+      });
+
+      refetch();
+    } catch (error) {
+      console.error("Erro ao compartilhar dashboard:", error);
     }
-    setCancelShare(removedShares);
   };
 
-  const handleSave = () => {
-    if (saved) handleRemoveSave();
-    // TODO
+  // Gerencia criação e remoção de compartilhamentos
+  const handleRemoveShare = async (userIds: string[]) => {
+    try {
+      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/share`;
+
+      await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userIds }),
+      });
+
+      refetch();
+    } catch (error) {
+      console.error("Erro ao remover compartilhamento de dashboard:", error);
+    }
   };
 
-  const handleRemoveSave = () => {
-    // TODO
-  };
-
-  const handleShareWith = (user: User) => {
+  // Gerencia novos compartilhamentos, deixando salvo em lista no state
+  // para só chamar o endpoint quando o usuário finalizar todas as operações
+  const handleShareLocally = (user: IUser) => {
     let selected = [...selectedUsers];
-    if (selectedUsers.map((u) => u.id).includes(user.id)) {
-      selected = selected.filter((u) => u.id !== user.id);
+    if (selectedUsers.map((u) => u._id).includes(user._id)) {
+      selected = selected.filter((u) => u._id !== user._id);
     } else {
       selected.push(user);
     }
@@ -79,17 +113,108 @@ export default function Dashboard({
     setSelectedUsers(selected);
   };
 
-  // TODO refatorar relação de busca por objeto em lista, pra nao precisar fazer map toda vez
+  // Gerencia remoção de compartilhamentos, deixando salvo em lista no state
+  // para só chamar o endpoint quando o usuário finalizar todas as operações
+  const handleRemoveShareLocally = (user: IUser) => {
+    let removedShares = [...cancelShare];
+    if (cancelShare.map((u) => u._id).includes(user._id)) {
+      removedShares = removedShares.filter((u) => u._id !== user._id);
+    } else {
+      removedShares.push(user);
+    }
+    setCancelShare(removedShares);
+  };
+
+  // Favorita dashboard
+  const handleSave = async () => {
+    if (saved) handleRemoveSave();
+    try {
+      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/favorite`;
+
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      refetch();
+    } catch (error) {
+      console.error("Erro ao favoritar dashboard:", error);
+    }
+  };
+
+  // Desfavorita dashboard
+  const handleRemoveSave = async () => {
+    try {
+      const url = `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/favorite`;
+
+      await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      refetch();
+    } catch (error) {
+      console.error("Erro ao desfavoritar dashboard:", error);
+    }
+  };
+
+  // Seleciona os compartilhamentos deste dashboards feitos pelo usuário
+  useEffect(() => {
+    const getSharesFromMe = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:3001/api/dashboard/${metabase_dashboard_id}/shares`
+        );
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setSharedWith(
+          data.filter((share: ISharedWith) => share.from._id === userId)
+        );
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+      }
+    };
+
+    getSharesFromMe();
+  }, [metabase_dashboard_id, userId]);
+
+  // Busca todos os usuários (menos o autenticado)
+  useEffect(() => {
+    const getUsers = async () => {
+      try {
+        const response = await fetch(`http://localhost:3001/api/user/users`);
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        setUsers(data);
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
+    getUsers();
+  }, [metabase_dashboard_id, userId]);
 
   return (
     <div className="flex flex-col rounded-md border-gray-100 border-1 shadow-md p-2 w-[450px] max-w-full h-[300px] justify-between">
       {/* Metabade Dashboard */}
-      <div className="rounded-md border-gray-100 border-1 w-full h-[85%] bg-gray-100" />
+      <div className="rounded-md border-gray-100 border-1 w-full h-[85%] bg-gray-100">
+        <MetabaseDashboard dashboardId={metabase_dashboard_id} />
+      </div>
 
       {/* Dashboard data */}
       <div className="flex flex-row items-center justify-between mb-1">
         <p className="text-sm text-common text-gray-800 italic">
-          {sharedBy ? `Compartilhado por ${sharedBy.map((u) => u.name).join(", ")}` : ""}
+          {sharedBy ? `Compartilhado por ${sharedBy.join(", ")}` : ""}
         </p>
         <div className="flex gap-2 items-center">
           <button
@@ -132,8 +257,8 @@ export default function Dashboard({
                 <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
                   {sharedWith.map((user, i) => {
                     const isOnCancelList = cancelShare
-                      .map((u) => u.id)
-                      .includes(user.id);
+                      .map((u) => u._id)
+                      .includes(user._id);
                     return (
                       <div
                         key={i}
@@ -141,12 +266,12 @@ export default function Dashboard({
                           isOnCancelList && "bg-gray-200"
                         }`}
                       >
-                        <p>{user.name}</p>
+                        <p>{user.nome}</p>
 
                         <button
                           className="hover:cursor-pointer"
                           onClick={() => {
-                            handleRemoveShare(user);
+                            handleRemoveShareLocally(user);
                           }}
                         >
                           {isOnCancelList ? (
@@ -168,24 +293,26 @@ export default function Dashboard({
             <div className="flex flex-col">
               <p className="font-title text-base font-medium ">Enviar para:</p>
               <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
-                {handleGetUsers()
+                {users
                   .filter(
                     (user) =>
                       !sharedWith ||
-                      !sharedWith.map((u) => u.id).includes(user.id)
+                      !sharedWith.map((u) => u._id).includes(user._id)
                   )
                   .map((user, i) => (
                     <div
                       key={i}
                       onClick={() => {
-                        handleShareWith(user);
+                        handleShareLocally(user);
                       }}
                       className={`flex py-1 px-2 justify-between items-center my-1 border-[1px] border-gray-200 shadow-sm rounded-md hover:bg-sky-800/10 hover:cursor-pointer ${
-                        selectedUsers.map((u) => u.id).includes(user.id) &&
+                        selectedUsers.map((u) => u._id).includes(user._id) &&
                         "bg-sky-800/30"
                       }`}
                     >
-                      <p>{user.name}</p>
+                      <p>
+                        {user.nome} ({user.username})
+                      </p>
                     </div>
                   ))}
               </div>
@@ -204,7 +331,7 @@ export default function Dashboard({
             key="confirm"
             text="Compartilhar"
             onClick={() => {
-              handleShare();
+              handleShares();
               setShowSharingModal(false);
             }}
           />,

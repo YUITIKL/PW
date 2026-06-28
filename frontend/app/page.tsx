@@ -17,12 +17,12 @@ export default function InitialScreen() {
     password: "",
   });
   const [signup, setSignup] = useState<{
-    name: string;
+    nome: string;
     email: string;
     password: string;
     confirmPassword: string;
   }>({
-    name: "",
+    nome: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -30,12 +30,14 @@ export default function InitialScreen() {
   const [initialScreen, setInitialScreen] = useState<"login" | "signup">(
     "login"
   );
-  const [error, setError] = useState<{
-    name: string;
+  const [errors, setErrors] = useState<{
+    nome: string;
     email: string;
     password: string;
     confirmPassword: string;
-  }>({ name: "", email: "", password: "", confirmPassword: "" });
+  }>({ nome: "", email: "", password: "", confirmPassword: "" });
+
+  const [fetchError, setFetchError] = useState("");
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -46,53 +48,82 @@ export default function InitialScreen() {
   };
 
   const clearErrors = () =>
-    setError({ name: "", email: "", password: "", confirmPassword: "" });
+    setErrors({ nome: "", email: "", password: "", confirmPassword: "" });
 
   const validateFields = () => {
     clearErrors();
 
     if (initialScreen === "login") {
       if (!validateEmail(login.email)) {
-        setError((prev) => ({ ...prev, email: "E-mail inválido" }));
+        setErrors((prev) => ({ ...prev, email: "E-mail inválido" }));
       }
       if (!validateEmptyField(login.password)) {
-        setError((prev) => ({ ...prev, password: "Campo obrigatório" }));
+        setErrors((prev) => ({ ...prev, password: "Campo obrigatório" }));
       }
     } else {
       if (!validateEmail(signup.email)) {
-        setError((prev) => ({ ...prev, email: "E-mail inválido" }));
+        setErrors((prev) => ({ ...prev, email: "E-mail inválido" }));
       }
-      if (!validateEmptyField(signup.name)) {
-        setError((prev) => ({ ...prev, name: "Campo obrigatório" }));
+      if (!validateEmptyField(signup.nome)) {
+        setErrors((prev) => ({ ...prev, nome: "Campo obrigatório" }));
       }
       if (!validateEmptyField(signup.password)) {
-        setError((prev) => ({ ...prev, password: "Campo obrigatório" }));
+        setErrors((prev) => ({ ...prev, password: "Campo obrigatório" }));
       }
       if (!validateEmptyField(signup.confirmPassword)) {
-        setError((prev) => ({ ...prev, confirmPassword: "Campo obrigatório" }));
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Campo obrigatório",
+        }));
       }
       if (signup.password !== signup.confirmPassword) {
-        setError((prev) => ({
+        setErrors((prev) => ({
           ...prev,
           confirmPassword: "Senhas devem ser iguais",
         }));
       }
     }
 
-    return !Object.values(error).some((msg) => msg.length > 0);
+    return !Object.values(errors).some((msg) => msg.length > 0);
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!validateFields()) return;
-    // REMOVER
-    const mockedToken = "sessionToken123";
 
-    if (initialScreen === "login") {
-      // TODO Chamar endpoint
-    } else {
-      // TODO chamar endpoint
+    // TODO trocar rota
+    const url =
+      initialScreen === "login"
+        ? "http://localhost:3001/api/auth/login"
+        : "http://localhost:3001/api/auth/register";
+
+    const body =
+      initialScreen === "login"
+        ? {
+            email: login.email,
+            password: login.password,
+          }
+        : {
+            nome: signup.nome,
+            email: signup.email,
+            password: signup.password,
+          };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setFetchError(data.message);
+      return;
     }
-    setToken(mockedToken);
+
+    setToken(data.token, data.user.id);
     router.push("/main-page");
   };
 
@@ -129,9 +160,15 @@ export default function InitialScreen() {
 
         {/* Login/Sign up */}
         <div className="flex flex-col border-2 border-sky-900 rounded-lg w-full md:w-1/2 p-3 md:p-6 mx-10 gap-2 md:gap-3">
-          <h2 className="text-xl md:text-2xl font-semibold text-sky-900 font-title">
-            {labels.title}
-          </h2>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl md:text-2xl font-semibold text-sky-900 font-title">
+              {labels.title}
+            </h2>
+            <div className={`flex flex-row items-center bg-red-200 h-6 w-full rounded-sm ${fetchError.length === 0 && "opacity-0"}`}>
+              <div className="h-4 rounded-l-xs w-1.5 bg-red-500 m-1" />
+              <p className="text-red-500 text-xs font-semibold">{fetchError}</p>
+            </div>
+          </div>
 
           {initialScreen === "login" ? (
             <>
@@ -141,7 +178,7 @@ export default function InitialScreen() {
                 onChange={(e) => {
                   setLogin((prev) => ({ ...prev, email: e }));
                 }}
-                error={error.email}
+                error={errors.email}
               />
               <Input
                 label="Senha"
@@ -150,18 +187,18 @@ export default function InitialScreen() {
                 onChange={(e) => {
                   setLogin((prev) => ({ ...prev, password: e }));
                 }}
-                error={error.password}
+                error={errors.password}
               />
             </>
           ) : (
             <>
               <Input
                 label="Nome"
-                value={signup.name}
+                value={signup.nome}
                 onChange={(e) => {
-                  setSignup((prev) => ({ ...prev, name: e }));
+                  setSignup((prev) => ({ ...prev, nome: e }));
                 }}
-                error={error.name}
+                error={errors.nome}
               />
               <Input
                 label="E-mail"
@@ -169,7 +206,7 @@ export default function InitialScreen() {
                 onChange={(e) => {
                   setSignup((prev) => ({ ...prev, email: e }));
                 }}
-                error={error.email}
+                error={errors.email}
               />
               <Input
                 label="Senha"
@@ -178,7 +215,7 @@ export default function InitialScreen() {
                 onChange={(e) => {
                   setSignup((prev) => ({ ...prev, password: e }));
                 }}
-                error={error.password}
+                error={errors.password}
               />
               <Input
                 label="Confirme sua senha"
@@ -187,7 +224,7 @@ export default function InitialScreen() {
                 onChange={(e) => {
                   setSignup((prev) => ({ ...prev, confirmPassword: e }));
                 }}
-                error={error.confirmPassword}
+                error={errors.confirmPassword}
               />
             </>
           )}

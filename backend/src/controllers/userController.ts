@@ -16,25 +16,50 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
     }
 };
 
+export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+      const users = await User.find({
+          _id: { $ne: req.userId },
+          ativo: true
+      }).select('-senha_hash');
+
+      res.status(200).json(users);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+};
+
 export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const { nome, username } = req.body;
+  try {
+      const { nome, username } = req.body;
 
-        const user = await User.findByIdAndUpdate(
-            req.userId,
-            { nome, username },
-            { new: true }
-        ).select('-senha_hash');
+      const existingUser = await User.findOne({
+          username,
+          _id: { $ne: req.userId }
+      });
 
-        if (!user) {
-            res.status(404).json({ message: 'Usuário não encontrado' });
-            return;
-        }
+      if (existingUser) {
+          res.status(409).json({ message: 'Username já cadastrado' });
+          return;
+      }
 
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).json({ message: 'Erro interno do servidor' });
-    }
+      const user = await User.findByIdAndUpdate(
+          req.userId,
+          { nome, username },
+          { new: true }
+      ).select('-senha_hash');
+
+      if (!user) {
+          res.status(404).json({ message: 'Usuário não encontrado' });
+          return;
+      }
+
+      res.status(200).json(user);
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
+  }
 };
 
 export const updatePassword = async (req: AuthRequest, res: Response): Promise<void> => {
