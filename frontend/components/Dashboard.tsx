@@ -17,17 +17,45 @@ type DashboardProps = {
   sharedBy: string[];
   saved: boolean;
   metabase_dashboard_id: number;
+  city: string;
+  startDate: string;
+  endDate: string;
   refetch: () => void;
 };
 
-function MetabaseDashboard({ dashboardId }: { dashboardId: number }) {
+function MetabaseDashboard({
+  dashboardId,
+  city,
+  startDate,
+  endDate,
+}: {
+  dashboardId: number;
+  city: string;
+  startDate: string;
+  endDate: string;
+}) {
   const [url, setUrl] = useState("");
 
+  // useEffect(() => {
+  //   fetch(`/api/metabase/dashboard/${dashboardId}`)
+  //     .then((res) => res.json())
+  //     .then((data) =>
+  //       setUrl(
+  //         data.url +
+  //           `?cidade=${city}&data_inicio=${startDate}&data_fim=${endDate}`
+  //       )
+  //     );
+  // }, [dashboardId, city, startDate, endDate]);
+
   useEffect(() => {
-    fetch(`/api/metabase/dashboard/${dashboardId}`)
-      .then((res) => res.json())
-      .then((data) => setUrl(data.url));
-  }, [dashboardId]);
+    function a() {
+
+      setUrl(
+        "https://raft-jot-raffle.ngrok-free.dev/public/dashboard/ae2a1b8d-b74e-4c77-8e7b-6e52c4794ea5?cidade=florian%C3%B3polis&data_fim=2025-01-31&data_inicio=2025-01-01"
+      );
+    }
+    a()
+  }, []);
 
   if (!url) return <p>Carregando dashboard...</p>;
 
@@ -41,6 +69,9 @@ export default function Dashboard({
   refetch,
   metabase_dashboard_id,
   saved,
+  city,
+  startDate,
+  endDate,
 }: DashboardProps) {
   const { userId, token } = useAuth();
 
@@ -110,7 +141,10 @@ export default function Dashboard({
       refetch();
     } catch (error) {
       console.error("Erro ao remover compartilhamento de dashboard:", error);
-      showToast(`Erro ao remover compartilhamento de dashboard: ${error}`, "error");
+      showToast(
+        `Erro ao remover compartilhamento de dashboard: ${error}`,
+        "error"
+      );
     }
   };
 
@@ -237,7 +271,12 @@ export default function Dashboard({
     <div className="flex flex-col rounded-md border-gray-100 border-1 shadow-md p-2 w-[450px] max-w-full h-[300px] justify-between">
       {/* Metabade Dashboard */}
       <div className="rounded-md border-gray-100 border-1 w-full h-[85%] bg-gray-100">
-        <MetabaseDashboard dashboardId={metabase_dashboard_id} />
+        <MetabaseDashboard
+          dashboardId={metabase_dashboard_id}
+          city={city}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </div>
 
       {/* Dashboard data */}

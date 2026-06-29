@@ -40,7 +40,7 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} ${amaranth.variable}
-          ${barlow.variable} h-full antialiased`}
+          ${barlow.variable} h-full antialiased bg-white`}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>

@@ -198,8 +198,17 @@ export default function MainScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
+  const mocked = {
+    city:"Florianópolis",
+    startDate: "2025-01-01",
+    endDate: "2025-01-31",
+    saved: true,
+    sharedBt: [],
+    metabase_dashboard_id:1
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center p-5 mt-12 md:mt-16 gap-5 md:gap-10">
+    <div className="flex flex-col flex-1 items-center p-5 mt-12 md:mt-16 gap-5 md:gap-10 bg-white">
       <div className="flex flex-col w-full gap-4 items-center">
         {/* Tabs */}
         <div className="flex w-full justify-center">
@@ -226,26 +235,43 @@ export default function MainScreen() {
         <div className="grid grid-cols-1 md:grid-cols-2  2xl:grid-cols-4 gap-5">
           {/* Dashboards */}
           {currentPage === "explore" &&
-            dashboards.map((dashboard, i) => {
-              return (
-                <Dashboard
-                  saved={dashboard.salvos_por
-                    .map((dashboard) => dashboard._id)
-                    .includes(userId!)}
-                  sharedBy={dashboard.compartilhado_com
-                    .filter((shares) => shares.to._id === userId)
-                    .map((shares) => shares.from.username)}
-                  key={`${i}-explore`}
+            // dashboards.map((dashboard, i) => {
+            //   return (
+            //     <Dashboard
+            //       city={filters.city!.nome}
+            //       startDate={filters.startDate!}
+            //       endDate={filters.endDate!}
+            //       saved={dashboard.salvos_por
+            //         .map((dashboard) => dashboard._id)
+            //         .includes(userId!)}
+            //       sharedBy={dashboard.compartilhado_com
+            //         .filter((shares) => shares.to._id === userId)
+            //         .map((shares) => shares.from.username)}
+            //       key={`${i}-explore`}
+            //       refetch={triggerRefetch}
+            //       metabase_dashboard_id={dashboard.metabase_dashboard_id}
+            //     />
+            //   );
+            // })
+            <Dashboard
+                  city={mocked.city}
+                  startDate={mocked.startDate}
+                  endDate={mocked.endDate}
+                  saved={true}
+                  sharedBy={[]}
+                  key={`explore`}
                   refetch={triggerRefetch}
-                  metabase_dashboard_id={dashboard.metabase_dashboard_id}
+                  metabase_dashboard_id={mocked.metabase_dashboard_id}
                 />
-              );
-            })}
+            }
 
           {currentPage === "shared" &&
             sharedDashboards.map((dashboard, i) => {
               return (
                 <Dashboard
+                  city={filters.city!.nome}
+                  startDate={filters.startDate!}
+                  endDate={filters.endDate!}
                   saved={dashboard.salvos_por
                     .map((dashboard) => dashboard._id)
                     .includes(userId!)}
@@ -263,6 +289,9 @@ export default function MainScreen() {
             savedDashboards.map((dashboard, i) => {
               return (
                 <Dashboard
+                  city={filters.city!.nome}
+                  startDate={filters.startDate!}
+                  endDate={filters.endDate!}
                   saved={true}
                   sharedBy={dashboard.compartilhado_com
                     .filter((shares) => shares.to._id === userId)
@@ -344,6 +373,8 @@ export default function MainScreen() {
             key="save"
             text="Fechar"
             onClick={() => {
+              // TODO precisa?
+              triggerRefetch()
               setShowFilterModal(false);
             }}
           />,

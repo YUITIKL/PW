@@ -173,7 +173,7 @@ export default function InitialScreen() {
         };
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center h-screen bg-white">
       <div className="flex flex-col md:flex-row flex-1 items-center justify-center p-5 2xl:max-w-[1800px] ">
         {/* Image */}
         <div className="md:w-1/2 w-full h-full justify-items-center">
@@ -274,9 +274,9 @@ export default function InitialScreen() {
             <Button full text={labels.button} onClick={submit} />
           </div>
 
-          <hr className="md:my-2" />
+          <hr className="md:my-2 text-gray-800" />
 
-          <p className="text-sm md:text-base text-center font-common">
+          <p className="text-sm md:text-base text-center font-common text-gray-800">
             {labels.changeMode}{" "}
             <span
               className="text-sky-900 hover:text-sky-700 hover:cursor-pointer font-semibold"
