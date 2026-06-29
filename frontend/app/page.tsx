@@ -282,6 +282,7 @@ export default function InitialScreen() {
               className="text-sky-900 hover:text-sky-700 hover:cursor-pointer font-semibold"
               onClick={() => {
                 clearErrors();
+                setFetchError("")
                 setInitialScreen(
                   initialScreen === "signup" ? "login" : "signup"
                 );
