@@ -125,7 +125,7 @@ export const deleteDashboard = async (req: AuthRequest, res: Response): Promise<
 
 export const createDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { nome, descricao, metabase_dashboard_id } = req.body;
+        const { nome, descricao, metabase_dashboard_id, data_inicio, data_fim, cidade } = req.body;
 
         if (!nome || !metabase_dashboard_id) {
             res.status(400).json({ message: 'Nome e ID do Metabase são obrigatórios' });
@@ -136,6 +136,9 @@ export const createDashboard = async (req: AuthRequest, res: Response): Promise<
             nome,
             descricao,
             metabase_dashboard_id,
+            data_inicio,
+            data_fim,
+            cidade,
             criado_por: req.userId,
         });
 
