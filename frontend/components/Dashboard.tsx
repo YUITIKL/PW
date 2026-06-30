@@ -1,38 +1,31 @@
 "use client";
 
-type DashboardMode = "national" | "city";
-
 type DashboardProps = {
-  mode: DashboardMode;
   city?: string;
+  startDate?: string;
+  endDate?: string;
+  id: string;
 };
 
 const FIXED_DASHBOARD_URL =
-  "https://raft-jot-raffle.ngrok-free.dev/public/dashboard/9f134c46-a154-4805-beed-1f9847cb286e?data_fim=2026-01-08&data_inicio=2026-01-01";
+  "https://raft-jot-raffle.ngrok-free.dev/public/dashboard/";
 
-const CITY_DASHBOARD_URL =
-  "https://raft-jot-raffle.ngrok-free.dev/public/dashboard/ae2a1b8d-b74e-4c77-8e7b-6e52c4794ea5";
-
-function buildDashboardUrl({
-  mode,
-  city,
-}: DashboardProps) {
-  if (mode === "national") {
-    return FIXED_DASHBOARD_URL;
-  }
-
-  const url = new URL(CITY_DASHBOARD_URL);
-  if (mode === "city" && city) {
+function buildDashboardUrl({ city, startDate, endDate, id }: DashboardProps) {
+  const url = new URL(`${FIXED_DASHBOARD_URL}${id}`);
+  if (city) {
     url.searchParams.set("cidade", city);
+  }
+  if (startDate) {
+    url.searchParams.set("data_inicio", startDate);
+  }
+  if (endDate) {
+    url.searchParams.set("data_fim", endDate);
   }
 
   return url.toString();
 }
 
-export default function Dashboard({
-  mode,
-  city,
-}: DashboardProps) {
+export default function Dashboard({ mode, city }: DashboardProps) {
   if (mode === "city" && !city) {
     return (
       <div className="flex h-full items-center justify-center border border-gray-200 bg-gray-50">
@@ -45,7 +38,7 @@ export default function Dashboard({
 
   return (
     <iframe
-      src={buildDashboardUrl({ mode, city })}
+      src={buildDashboardUrl( city, startDate ?? null, endDate ?? null, metabase_dashboard_id)}
       className="h-full w-full border-0 bg-white"
       title={mode === "national" ? "Dashboard nacional" : "Dashboard municipal"}
     />
