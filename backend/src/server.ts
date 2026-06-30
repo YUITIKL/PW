@@ -5,6 +5,7 @@ import connectDB from './config/database';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import locationsRoutes from './routes/locationsRoutes';
 import weatherRoutes from './routes/weatherRoutes';
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboards', dashboardRoutes);
+app.use('/api/locations', locationsRoutes);
 app.use('/api/weather', weatherRoutes);
 
 connectDB().then(() => {

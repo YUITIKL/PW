@@ -2,7 +2,9 @@
 
 import Dashboard from "@/components/Dashboard";
 import Button from "@/components/Button";
+import DateInput from "@/components/DateInput";
 import Modal from "@/components/Modal";
+import Select from "@/components/Select";
 import Tabs from "@/components/Tabs";
 import Toast from "@/components/Toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +20,49 @@ import { IDashboard, ISharedWith, IUser } from "../utils/types";
 
 type Pages = "national" | "city" | "shared" | "favorites";
 type DashboardMode = "national" | "city";
+
+type StateOption = {
+  id: number;
+  nome: string;
+  sigla: string;
+};
+
+type CityOption = {
+  id: number;
+  nome: string;
+  estado: string;
+};
+
+type Filters = {
+  state?: StateOption;
+  city?: CityOption;
+  startDate: string;
+  endDate: string;
+};
+
+const INITIAL_FILTERS: Filters = {
+  startDate: getDateOneMonthAgo(),
+  endDate: formatDateInputValue(new Date()),
+};
+
+function formatDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDateOneMonthAgo() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const day = today.getDate();
+  const lastDayOfPreviousMonth = new Date(year, month, 0).getDate();
+  const date = new Date(year, month - 1, Math.min(day, lastDayOfPreviousMonth));
+
+  return formatDateInputValue(date);
+}
 
 function getDashboardMode(dashboard?: IDashboard): DashboardMode {
   const text = `${dashboard?.nome ?? ""} ${dashboard?.descricao ?? ""}`.toLowerCase();
@@ -50,8 +95,11 @@ export default function MainScreen() {
   const [dashboards, setDashboards] = useState<IDashboard[]>([]);
   const [savedDashboards, setSavedDashboards] = useState<IDashboard[]>([]);
   const [sharedDashboards, setSharedDashboards] = useState<IDashboard[]>([]);
-  const [selectedShared, setSelectedShared] = useState<number | null>(null);
-  const [selectedFavorite, setSelectedFavorite] = useState<number | null>(null);
+  const [selectedShared, setSelectedShared] = useState<string | null>(null);
+  const [selectedFavorite, setSelectedFavorite] = useState<string | null>(null);
+  const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
+  const [states, setStates] = useState<StateOption[]>([]);
+  const [cities, setCities] = useState<CityOption[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
   const [showSharingModal, setShowSharingModal] = useState(false);
   const [users, setUsers] = useState<IUser[]>([]);
@@ -107,7 +155,7 @@ export default function MainScreen() {
         const data = await response.json();
         setSavedDashboards(data);
         setSelectedFavorite((current) =>
-          current === null && data.length > 0 ? data[0].metabase_dashboard_id : current
+          current === null && data.length > 0 ? data[0]._id : current
         );
       } catch (error) {
         console.error("Erro ao buscar dashboards salvos:", error);
@@ -132,7 +180,7 @@ export default function MainScreen() {
         const data = await response.json();
         setSharedDashboards(data);
         setSelectedShared((current) =>
-          current === null && data.length > 0 ? data[0].metabase_dashboard_id : current
+          current === null && data.length > 0 ? data[0]._id : current
         );
       } catch (error) {
         console.error("Erro ao buscar dashboards compartilhados:", error);
@@ -142,6 +190,58 @@ export default function MainScreen() {
 
     if (token) getSharedDashboards();
   }, [reloadKey, token]);
+
+  useEffect(() => {
+    const getStates = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/api/locations/states", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setStates(data);
+      } catch (error) {
+        console.error("Erro ao buscar estados:", error);
+        showToast(`Erro ao buscar estados: ${error}`, "error");
+      }
+    };
+
+    if (token) getStates();
+  }, [token]);
+
+  useEffect(() => {
+    const getCities = async () => {
+      if (!filters.state) {
+        setCities([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://localhost:3001/api/locations/cities/${filters.state.sigla}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        setCities(data);
+      } catch (error) {
+        console.error("Erro ao buscar cidades:", error);
+        showToast(`Erro ao buscar cidades: ${error}`, "error");
+      }
+    };
+
+    if (token) getCities();
+  }, [filters.state, token]);
 
   const nationalDashboard = useMemo(
     () => dashboards.find((dashboard) => getDashboardMode(dashboard) === "national"),
@@ -156,7 +256,7 @@ export default function MainScreen() {
   const selectedSharedDashboard = useMemo(
     () =>
       sharedDashboards.find(
-        (dashboard) => dashboard.metabase_dashboard_id === selectedShared
+        (dashboard) => dashboard._id === selectedShared
       ),
     [selectedShared, sharedDashboards]
   );
@@ -164,7 +264,7 @@ export default function MainScreen() {
   const selectedFavoriteDashboard = useMemo(
     () =>
       savedDashboards.find(
-        (dashboard) => dashboard.metabase_dashboard_id === selectedFavorite
+        (dashboard) => dashboard._id === selectedFavorite
       ),
     [selectedFavorite, savedDashboards]
   );
@@ -181,11 +281,25 @@ export default function MainScreen() {
   const activeMode =
     currentPage === "national" ? "national" : getDashboardMode(activeDashboard);
 
+  const showDashboardFilters =
+    currentPage === "national" || currentPage === "city";
+
+  const iframeCity =
+    currentPage === "city" ? filters.city?.nome : activeDashboard?.cidade;
+
+  const iframeStartDate =
+    showDashboardFilters ? filters.startDate : activeDashboard?.data_inicio ?? "";
+
+  const iframeEndDate =
+    showDashboardFilters ? filters.endDate : activeDashboard?.data_fim ?? "";
+
+  const iframeDashboardId = activeDashboard?.metabase_dashboard_id;
+
   const isActiveSaved =
     Boolean(activeDashboard) &&
     activeDashboard!.salvos_por.map((user) => user._id).includes(userId!);
 
-  const activeDashboardId = activeDashboard?.metabase_dashboard_id;
+  const activeDashboardId = activeDashboard?._id;
 
   useEffect(() => {
     if (!token || !activeDashboardId) return;
@@ -352,8 +466,8 @@ export default function MainScreen() {
 
   const renderSidebar = (
     items: IDashboard[],
-    selectedId: number | null,
-    onSelect: (id: number) => void,
+    selectedId: string | null,
+    onSelect: (id: string) => void,
     emptyText: string,
     showSharedBy = false
   ) => (
@@ -372,12 +486,12 @@ export default function MainScreen() {
         {items.map((dashboard) => {
           const mode = getDashboardMode(dashboard);
           const sharedBy = getSharedBy(dashboard, userId);
-          const active = selectedId === dashboard.metabase_dashboard_id;
+          const active = selectedId === dashboard._id;
 
           return (
             <button
-              key={dashboard.metabase_dashboard_id}
-              onClick={() => onSelect(dashboard.metabase_dashboard_id)}
+              key={dashboard._id}
+              onClick={() => onSelect(dashboard._id)}
               className={`flex flex-col gap-1 rounded-md border px-3 py-2 text-left transition-colors ${
                 active
                   ? "border-sky-800 bg-sky-800 text-white"
@@ -442,7 +556,7 @@ export default function MainScreen() {
           )}
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-gray-200 px-4 py-3">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-4 py-3">
             <div className="min-w-0">
               <h2 className="font-title text-lg font-semibold text-sky-900">
                 {currentPage === "national"
@@ -460,6 +574,86 @@ export default function MainScreen() {
                   </p>
                 )}
             </div>
+
+            {showDashboardFilters && (
+              <div className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-3">
+                {currentPage === "city" && (
+                  <>
+                    <div className="w-[180px]">
+                      <Select
+                        label="UF"
+                        value={filters.state?.sigla ?? ""}
+                        onChange={(value) => {
+                          const selectedState = states.find(
+                            (state) => state.sigla === value
+                          );
+
+                          setFilters((current) => ({
+                            ...current,
+                            state: selectedState,
+                            city: undefined,
+                          }));
+                        }}
+                        placeholder="UF"
+                        options={states.map((state) => ({
+                          value: state.sigla,
+                          label: state.nome,
+                        }))}
+                      />
+                    </div>
+
+                    <div className="w-[220px]">
+                      <Select
+                        label="Cidade"
+                        value={filters.city?.nome ?? ""}
+                        onChange={(value) => {
+                          const selectedCity = cities.find(
+                            (city) => city.nome === value
+                          );
+
+                          setFilters((current) => ({
+                            ...current,
+                            city: selectedCity,
+                          }));
+                        }}
+                        disabled={!filters.state}
+                        placeholder="Cidade"
+                        options={cities.map((city) => ({
+                          value: city.nome,
+                          label: city.nome,
+                        }))}
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="w-[170px]">
+                  <DateInput
+                    label="Data inicial"
+                    value={filters.startDate}
+                    onChange={(value) =>
+                      setFilters((current) => ({
+                        ...current,
+                        startDate: value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="w-[170px]">
+                  <DateInput
+                    label="Data final"
+                    value={filters.endDate}
+                    onChange={(value) =>
+                      setFilters((current) => ({
+                        ...current,
+                        endDate: value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex shrink-0 items-center gap-2">
               <button
@@ -496,6 +690,10 @@ export default function MainScreen() {
             {activeDashboard || currentPage === "national" || currentPage === "city" ? (
               <Dashboard
                 mode={activeMode}
+                id={iframeDashboardId}
+                city={iframeCity}
+                startDate={iframeStartDate}
+                endDate={iframeEndDate}
               />
             ) : (
               <div className="flex h-full min-h-[420px] items-center justify-center bg-gray-50">

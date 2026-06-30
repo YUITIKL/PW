@@ -21,11 +21,11 @@ export default function Tabs({ onChange }: TabsProps) {
   const tabs = [
     {
       text: "Nacional",
-      icon: <GlobeHemisphereWestIcon size={18} className="mx-auto" />,
+      icon: <GlobeHemisphereWestIcon weight="fill" size={18} className="mx-auto" />,
     },
     {
-      text: "Município",
-      icon: <BuildingsIcon size={18} className="mx-auto" />,
+      text: "Municipal",
+      icon: <BuildingsIcon weight="fill" size={18} className="mx-auto" />,
     },
     {
       text: "Compartilhados comigo",
