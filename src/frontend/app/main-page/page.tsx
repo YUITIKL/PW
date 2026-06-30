@@ -91,7 +91,7 @@ export default function MainScreen() {
     const getSavedDashboards = async () => {
       try {
         const response = await fetch(
-          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/saved",
+          "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/saved",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -119,7 +119,7 @@ export default function MainScreen() {
     const getSharedDashboards = async () => {
       try {
         const response = await fetch(
-          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/shared",
+          "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/shared",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -242,7 +242,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards",
+        "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards",
         {
           method: "POST",
           headers: {
@@ -299,7 +299,7 @@ export default function MainScreen() {
     const getUsers = async () => {
       try {
         const response = await fetch(
-          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/users",
+          "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/users",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -320,7 +320,7 @@ export default function MainScreen() {
     const getSharesFromMe = async () => {
       try {
         const response = await fetch(
-          `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${activeDashboardId}/shares`,
+          `http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${activeDashboardId}/shares`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -366,7 +366,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${dashboard._id}/favorite`,
+        `http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${dashboard._id}/favorite`,
         {
           method: dashboardIsSaved ? "DELETE" : "POST",
           headers: {
@@ -402,7 +402,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${dashboard._id}/share`,
+        `http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${dashboard._id}/share`,
         {
           method: "POST",
           headers: {
@@ -431,7 +431,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${activeDashboardId}/share`,
+        `http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/dashboards/${activeDashboardId}/share`,
         {
           method: "DELETE",
           headers: {

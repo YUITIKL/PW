@@ -100,7 +100,7 @@ export default function Profile() {
     const getUserData = async () => {
       try {
         const response = await fetch(
-          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/profile",
+          "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/profile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -154,7 +154,7 @@ export default function Profile() {
 
     try {
       const url =
-        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/profile";
+        "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/profile";
 
       const body = {
         nome: data.nome,
@@ -191,7 +191,7 @@ export default function Profile() {
 
     try {
       const url =
-        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/password";
+        "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/password";
 
       const body = {
         newPassword: data.password,
@@ -219,7 +219,7 @@ export default function Profile() {
   const handleDeleteProfile = async () => {
     try {
       const url =
-        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/account";
+        "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/users/account";
 
       await fetch(url, {
         method: "DELETE",
