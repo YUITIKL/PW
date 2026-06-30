@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 
 const connectDB = async (): Promise<void> => {
     try {
-        const mongoURI = process.env.MONGO_URI as string;
+        const mongoURI = 'mongodb://127.0.0.1:27018/meteorologia'; 
+        
         await mongoose.connect(mongoURI);
         console.log('MongoDB conectado com sucesso');
     } catch (error) {
