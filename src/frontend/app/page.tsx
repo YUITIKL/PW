@@ -122,8 +122,8 @@ export default function InitialScreen() {
 
     const url =
       initialScreen === "login"
-        ? "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/auth/login"
-        : "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/auth/register";
+        ? "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/auth/login"
+        : "http://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api/auth/register";
 
     const body =
       initialScreen === "login"
