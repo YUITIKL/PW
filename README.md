@@ -28,4 +28,4 @@ Os dashboards em si sao exibidos pelo Metabase. O front-end monta a URL publica 
 
 Link para o repositório: https://github.com/YUITIKL/PW
 
-Link para a aplicação:
+Link para a aplicação: http://projetoweb.beatriz.schmitt.vms.ufsc.br:3000
