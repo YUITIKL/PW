@@ -1,1 +1,6 @@
-.idea/
+node_modules/
+.next/
+dist/
+.env
+trabalho-pratico.zip
+.agents/
