@@ -1,7 +1,5 @@
 import { Router } from 'express';
 import {
-    getDashboards,
-    getMyDashboards,
     getSharedWithMe,
     shareDashboard,
     unshareDashboard,
@@ -17,8 +15,6 @@ import authMiddleware from '../middlewares/auth';
 
 const router = Router();
 
-router.get('/', authMiddleware, getDashboards);
-router.get('/mine', authMiddleware, getMyDashboards);
 router.get('/shared', authMiddleware, getSharedWithMe);
 router.get('/saved', authMiddleware, getSavedDashboards);
 

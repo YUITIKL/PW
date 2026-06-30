@@ -4,7 +4,6 @@ type DashboardMode = "national" | "city";
 
 type DashboardProps = {
   mode: DashboardMode;
-  id?: string;
   city?: string;
   startDate?: string;
   endDate?: string;
@@ -13,22 +12,16 @@ type DashboardProps = {
 const METABASE_DASHBOARD_BASE_URL =
   "https://raft-jot-raffle.ngrok-free.dev/public/dashboard/";
 
-const DEFAULT_NATIONAL_DASHBOARD_ID =
-  "9f134c46-a154-4805-beed-1f9847cb286e";
+export const DEFAULT_NATIONAL_DASHBOARD_ID = "9f134c46-a154-4805-beed-1f9847cb286e";
 
-const DEFAULT_CITY_DASHBOARD_ID =
-  "ae2a1b8d-b74e-4c77-8e7b-6e52c4794ea5";
+export const DEFAULT_CITY_DASHBOARD_ID = "ae2a1b8d-b74e-4c77-8e7b-6e52c4794ea5";
 
-function buildDashboardUrl({
-  mode,
-  id,
-  city,
-  startDate,
-  endDate,
-}: DashboardProps) {
+// Cria a URL do dashboard
+function buildDashboardUrl({ mode, city, startDate, endDate }: DashboardProps) {
   const dashboardId =
-    id ??
-    (mode === "national" ? DEFAULT_NATIONAL_DASHBOARD_ID : DEFAULT_CITY_DASHBOARD_ID);
+    mode === "national"
+      ? DEFAULT_NATIONAL_DASHBOARD_ID
+      : DEFAULT_CITY_DASHBOARD_ID;
 
   const url = new URL(`${METABASE_DASHBOARD_BASE_URL}${dashboardId}`);
 
@@ -51,14 +44,13 @@ function buildDashboardUrl({
 
 export default function Dashboard({
   mode,
-  id,
   city,
   startDate,
   endDate,
 }: DashboardProps) {
   return (
     <iframe
-      src={buildDashboardUrl({ mode, id, city, startDate, endDate })}
+      src={buildDashboardUrl({ mode, city, startDate, endDate })}
       className="h-full w-full border-0 bg-white"
       title={mode === "national" ? "Dashboard nacional" : "Dashboard municipal"}
     />

@@ -1,6 +1,9 @@
 "use client";
 
-import Dashboard from "@/components/Dashboard";
+import Dashboard, {
+  DEFAULT_CITY_DASHBOARD_ID,
+  DEFAULT_NATIONAL_DASHBOARD_ID,
+} from "@/components/Dashboard";
 import Button from "@/components/Button";
 import DateInput from "@/components/DateInput";
 import Modal from "@/components/Modal";
@@ -16,96 +19,61 @@ import {
 } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { IDashboard, ISharedWith, IUser } from "../utils/types";
+import { AVAILABLE_CITIES } from "../utils/availableCities";
+import {
+  DashboardMode,
+  Filters,
+  IDashboard,
+  ISharedWith,
+  IUser,
+  Pages,
+} from "../utils/types";
+import {
+  dashboardMatchesFilters,
+  formatDateInputValue,
+  getDashboardMode,
+  getDateOneMonthAgo,
+  getSharedBy,
+  getUserId,
+} from "../utils/dashboardFunctions";
+import Sidebar from "@/components/Sidebar";
 
-type Pages = "national" | "city" | "shared" | "favorites";
-type DashboardMode = "national" | "city";
-
-type StateOption = {
-  id: number;
-  nome: string;
-  sigla: string;
-};
-
-type CityOption = {
-  id: number;
-  nome: string;
-  estado: string;
-};
-
-type Filters = {
-  state?: StateOption;
-  city?: CityOption;
-  startDate: string;
-  endDate: string;
-};
-
+// Por default a data de início é um mês atrás e a data final é hoje
 const INITIAL_FILTERS: Filters = {
   startDate: getDateOneMonthAgo(),
   endDate: formatDateInputValue(new Date()),
 };
 
-function formatDateInputValue(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
-function getDateOneMonthAgo() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const day = today.getDate();
-  const lastDayOfPreviousMonth = new Date(year, month, 0).getDate();
-  const date = new Date(year, month - 1, Math.min(day, lastDayOfPreviousMonth));
-
-  return formatDateInputValue(date);
-}
-
-function getDashboardMode(dashboard?: IDashboard): DashboardMode {
-  const text = `${dashboard?.nome ?? ""} ${dashboard?.descricao ?? ""}`.toLowerCase();
-  return text.includes("nacional") ? "national" : "city";
-}
-
-function getSharedBy(dashboard: IDashboard, userId: string | null) {
-  return dashboard.compartilhado_com
-    .filter((share) => share.to._id === userId)
-    .map((share) => share.from.username);
-}
-
-function formatDashboardButton({
-  dashboard,
-  mode,
-}: {
-  dashboard?: IDashboard;
-  mode: DashboardMode;
-}) {
-  const scope = mode === "national" ? "Nacional" : "Município";
-
-  return dashboard?.nome ?? scope;
-}
 
 export default function MainScreen() {
   const { token, userId } = useAuth();
   const router = useRouter();
 
   const [currentPage, setCurrentPage] = useState<Pages>("national");
-  const [dashboards, setDashboards] = useState<IDashboard[]>([]);
   const [savedDashboards, setSavedDashboards] = useState<IDashboard[]>([]);
   const [sharedDashboards, setSharedDashboards] = useState<IDashboard[]>([]);
+  // Dashboard compartilhado que foi selecionado para visualização
   const [selectedShared, setSelectedShared] = useState<string | null>(null);
+  // Dashboard favoritado que foi selecionado para visualização
   const [selectedFavorite, setSelectedFavorite] = useState<string | null>(null);
+  // Salva os dados do dashboard que acabou de ser favoritado/compartilhado
+  const [currentDashboardRecord, setCurrentDashboardRecord] =
+    useState<IDashboard | null>(null);
+  // Filtros do dashboard (data inicial, data final, cidade [no municipal])
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
-  const [states, setStates] = useState<StateOption[]>([]);
-  const [cities, setCities] = useState<CityOption[]>([]);
+  // Refetch nos endpoints
   const [reloadKey, setReloadKey] = useState(0);
+  // Gerencia visibilidade do modal de compartilhamento
   const [showSharingModal, setShowSharingModal] = useState(false);
+  // Todos os usuários cadastrados
   const [users, setUsers] = useState<IUser[]>([]);
+  // Com quem eu já compartilhei o dashboard
   const [sharedWith, setSharedWith] = useState<IUser[]>([]);
+  // Usuários selecionados para compartilhar (usado antes de chamar a API)
   const [selectedUsers, setSelectedUsers] = useState<IUser[]>([]);
+  // Usuários selecionados para cancelar o compartilhamento (usado antes de chamar a API)
   const [cancelShare, setCancelShare] = useState<IUser[]>([]);
+
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error";
@@ -120,35 +88,16 @@ export default function MainScreen() {
   }, [token, userId, router]);
 
   useEffect(() => {
-    const getDashboards = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/api/dashboards", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) return;
-
-        const data = await response.json();
-        setDashboards(data);
-      } catch (error) {
-        console.error("Erro ao buscar dashboards:", error);
-        showToast(`Erro ao buscar dashboards: ${error}`, "error");
-      }
-    };
-
-    if (token) getDashboards();
-  }, [reloadKey, token]);
-
-  useEffect(() => {
     const getSavedDashboards = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/dashboards/saved", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          "http://localhost:3001/api/dashboards/saved",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) return;
 
@@ -169,11 +118,14 @@ export default function MainScreen() {
   useEffect(() => {
     const getSharedDashboards = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/dashboards/shared", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          "http://localhost:3001/api/dashboards/shared",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) return;
 
@@ -191,115 +143,148 @@ export default function MainScreen() {
     if (token) getSharedDashboards();
   }, [reloadKey, token]);
 
-  useEffect(() => {
-    const getStates = async () => {
-      try {
-        const response = await fetch("http://localhost:3001/api/locations/states", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) return;
-
-        const data = await response.json();
-        setStates(data);
-      } catch (error) {
-        console.error("Erro ao buscar estados:", error);
-        showToast(`Erro ao buscar estados: ${error}`, "error");
-      }
-    };
-
-    if (token) getStates();
-  }, [token]);
-
-  useEffect(() => {
-    const getCities = async () => {
-      if (!filters.state) {
-        setCities([]);
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          `http://localhost:3001/api/locations/cities/${filters.state.sigla}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) return;
-
-        const data = await response.json();
-        setCities(data);
-      } catch (error) {
-        console.error("Erro ao buscar cidades:", error);
-        showToast(`Erro ao buscar cidades: ${error}`, "error");
-      }
-    };
-
-    if (token) getCities();
-  }, [filters.state, token]);
-
-  const nationalDashboard = useMemo(
-    () => dashboards.find((dashboard) => getDashboardMode(dashboard) === "national"),
-    [dashboards]
-  );
-
-  const cityDashboard = useMemo(
-    () => dashboards.find((dashboard) => getDashboardMode(dashboard) === "city"),
-    [dashboards]
-  );
-
   const selectedSharedDashboard = useMemo(
     () =>
-      sharedDashboards.find(
-        (dashboard) => dashboard._id === selectedShared
-      ),
+      sharedDashboards.find((dashboard) => dashboard._id === selectedShared),
     [selectedShared, sharedDashboards]
   );
 
   const selectedFavoriteDashboard = useMemo(
     () =>
-      savedDashboards.find(
-        (dashboard) => dashboard._id === selectedFavorite
-      ),
+      savedDashboards.find((dashboard) => dashboard._id === selectedFavorite),
     [selectedFavorite, savedDashboards]
   );
 
+  const currentMode: DashboardMode =
+    currentPage === "city" ? "city" : "national";
+
+  // Verifica se o dashboard aberto agora já está salvo
+  const currentSavedDashboard = useMemo(
+    () =>
+      savedDashboards.find((dashboard) =>
+        dashboardMatchesFilters(dashboard, currentMode, filters)
+      ),
+    [currentMode, filters, savedDashboards]
+  );
+
+  // Evita reutilizar ids antigos (se uso X filtros, salvo, e depois troco
+  // os filtros, isso evita que continue usando o id do dash antigo do mongo caso eu vá agora realizar outra operação)
+  const currentCreatedDashboard =
+    currentDashboardRecord &&
+    dashboardMatchesFilters(currentDashboardRecord, currentMode, filters)
+      ? currentDashboardRecord
+      : undefined;
+
+  // Dashboard visível no momento
   const activeDashboard =
-    currentPage === "national"
-      ? nationalDashboard
-      : currentPage === "city"
-      ? cityDashboard
+    currentPage === "national" || currentPage === "city"
+      ? currentSavedDashboard ?? currentCreatedDashboard
       : currentPage === "shared"
       ? selectedSharedDashboard
       : selectedFavoriteDashboard;
 
+  // Modo do dashboard visível no momento
   const activeMode =
-    currentPage === "national" ? "national" : getDashboardMode(activeDashboard);
+    currentPage === "national" || currentPage === "city"
+      ? currentMode
+      : getDashboardMode(activeDashboard);
 
   const showDashboardFilters =
     currentPage === "national" || currentPage === "city";
 
   const iframeCity =
-    currentPage === "city" ? filters.city?.nome : activeDashboard?.cidade;
+    currentPage === "city" ? filters.city : activeDashboard?.cidade;
 
-  const iframeStartDate =
-    showDashboardFilters ? filters.startDate : activeDashboard?.data_inicio ?? "";
+  const iframeStartDate = showDashboardFilters
+    ? filters.startDate
+    : activeDashboard?.data_inicio ?? "";
 
-  const iframeEndDate =
-    showDashboardFilters ? filters.endDate : activeDashboard?.data_fim ?? "";
-
-  const iframeDashboardId = activeDashboard?.metabase_dashboard_id;
+  const iframeEndDate = showDashboardFilters
+    ? filters.endDate
+    : activeDashboard?.data_fim ?? "";
 
   const isActiveSaved =
     Boolean(activeDashboard) &&
-    activeDashboard!.salvos_por.map((user) => user._id).includes(userId!);
+    activeDashboard!.salvos_por
+      .map((user) => getUserId(user))
+      .includes(userId!);
 
   const activeDashboardId = activeDashboard?._id;
+
+  // Define se pode salvar/compartilhar o dashboard atual (se tem o id do mongo ou os filtros necessários
+  // pra criar um novo registro)
+  const canPersistDashboard =
+    Boolean(activeDashboardId) ||
+    currentPage === "national" ||
+    (currentPage === "city" && Boolean(filters.city));
+
+  const createCurrentDashboard = async () => {
+    if (!token) return null;
+
+    const mode = currentPage === "city" ? "city" : "national";
+
+    if (mode === "city" && !filters.city) {
+      showToast(
+        "Selecione um município antes de salvar ou compartilhar",
+        "error"
+      );
+      return null;
+    }
+
+    const metabaseDashboardId =
+      mode === "national"
+        ? DEFAULT_NATIONAL_DASHBOARD_ID
+        : DEFAULT_CITY_DASHBOARD_ID;
+
+    try {
+      const response = await fetch("http://localhost:3001/api/dashboards", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          nome:
+            mode === "national"
+              ? `Nacional - ${filters.startDate} - ${filters.endDate}`
+              : `${filters.city ?? "Municipal"} - ${filters.startDate} - ${
+                  filters.endDate
+                }`,
+          descricao:
+            mode === "national"
+              ? "Dashboard nacional"
+              : `Dashboard municipal${
+                  filters.city ? ` de ${filters.city}` : ""
+                }`,
+          metabase_dashboard_id: metabaseDashboardId,
+          data_inicio: filters.startDate,
+          data_fim: filters.endDate,
+          cidade: mode === "city" ? filters.city : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        showToast("Erro ao criar dashboard", "error");
+        return null;
+      }
+
+      const dashboard = await response.json();
+      setCurrentDashboardRecord(dashboard);
+      return dashboard as IDashboard;
+    } catch (error) {
+      console.error("Erro ao criar dashboard:", error);
+      showToast(`Erro ao criar dashboard: ${error}`, "error");
+      return null;
+    }
+  };
+
+  const getOrCreateActiveDashboard = async () => {
+    if (activeDashboard) return activeDashboard;
+
+    if (currentPage !== "national" && currentPage !== "city") return null;
+
+    return createCurrentDashboard();
+  };
 
   useEffect(() => {
     if (!token || !activeDashboardId) return;
@@ -349,20 +334,29 @@ export default function MainScreen() {
     getSharesFromMe();
   }, [activeDashboardId, token, userId]);
 
-  const openSharingModal = () => {
+  const openSharingModal = async () => {
+    const dashboard = await getOrCreateActiveDashboard();
+    if (!dashboard) return;
+
     setSelectedUsers([]);
     setCancelShare([]);
     setShowSharingModal(true);
   };
 
+  // Favorita/desfavorita dashboard
   const handleFavorite = async () => {
-    if (!activeDashboardId) return;
+    const dashboard = await getOrCreateActiveDashboard();
+    if (!dashboard) return;
+
+    const dashboardIsSaved = dashboard.salvos_por
+      .map((user) => getUserId(user))
+      .includes(userId!);
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/dashboards/${activeDashboardId}/favorite`,
+        `http://localhost:3001/api/dashboards/${dashboard._id}/favorite`,
         {
-          method: isActiveSaved ? "DELETE" : "POST",
+          method: dashboardIsSaved ? "DELETE" : "POST",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -376,7 +370,9 @@ export default function MainScreen() {
 
       setReloadKey((current) => current + 1);
       showToast(
-        isActiveSaved ? "Dashboard removido dos favoritos" : "Dashboard favoritado",
+        dashboardIsSaved
+          ? "Dashboard removido dos favoritos"
+          : "Dashboard favoritado",
         "success"
       );
     } catch (error) {
@@ -385,12 +381,16 @@ export default function MainScreen() {
     }
   };
 
+  // Compartilha dashboard
   const handleShare = async (userIds: string[]) => {
-    if (!activeDashboardId || userIds.length === 0) return;
+    if (userIds.length === 0) return;
+
+    const dashboard = await getOrCreateActiveDashboard();
+    if (!dashboard) return;
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/dashboards/${activeDashboardId}/share`,
+        `http://localhost:3001/api/dashboards/${dashboard._id}/share`,
         {
           method: "POST",
           headers: {
@@ -413,6 +413,7 @@ export default function MainScreen() {
     }
   };
 
+  // Cancela compartilhamento previamente realizado
   const handleRemoveShare = async (userIds: string[]) => {
     if (!activeDashboardId || userIds.length === 0) return;
 
@@ -441,6 +442,7 @@ export default function MainScreen() {
     }
   };
 
+  // Cria lista local de pra quem deve compartilhar (pra não chamar o endpoint várias vezes)
   const handleShareLocally = (user: IUser) => {
     setSelectedUsers((current) =>
       current.map((item) => item._id).includes(user._id)
@@ -449,6 +451,7 @@ export default function MainScreen() {
     );
   };
 
+  // Cria lista local de pra quem deve remover o compartilhamento (pra não chamar o endpoint várias vezes)
   const handleRemoveShareLocally = (user: IUser) => {
     setCancelShare((current) =>
       current.map((item) => item._id).includes(user._id)
@@ -457,65 +460,13 @@ export default function MainScreen() {
     );
   };
 
+  // Chama os endpoints pra compartilhar e remover compartilhamento
   const handleConfirmShare = async () => {
     await handleShare(selectedUsers.map((user) => user._id));
     await handleRemoveShare(cancelShare.map((user) => user._id));
     setShowSharingModal(false);
     setReloadKey((current) => current + 1);
   };
-
-  const renderSidebar = (
-    items: IDashboard[],
-    selectedId: string | null,
-    onSelect: (id: string) => void,
-    emptyText: string,
-    showSharedBy = false
-  ) => (
-    <aside className="flex w-full shrink-0 flex-col border-r border-gray-200 bg-gray-50 md:w-[280px]">
-      <div className="border-b border-gray-200 px-4 py-3">
-        <p className="font-title text-base font-semibold text-sky-900">
-          Dashboards
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-2 overflow-y-auto p-3">
-        {items.length === 0 && (
-          <p className="px-2 py-4 text-sm italic text-gray-500">{emptyText}</p>
-        )}
-
-        {items.map((dashboard) => {
-          const mode = getDashboardMode(dashboard);
-          const sharedBy = getSharedBy(dashboard, userId);
-          const active = selectedId === dashboard._id;
-
-          return (
-            <button
-              key={dashboard._id}
-              onClick={() => onSelect(dashboard._id)}
-              className={`flex flex-col gap-1 rounded-md border px-3 py-2 text-left transition-colors ${
-                active
-                  ? "border-sky-800 bg-sky-800 text-white"
-                  : "border-gray-200 bg-white text-gray-800 hover:border-sky-700"
-              }`}
-            >
-              <span className="font-title text-sm font-semibold">
-                {formatDashboardButton({ dashboard, mode })}
-              </span>
-              {showSharedBy && sharedBy.length > 0 && (
-                <span
-                  className={`text-xs italic ${
-                    active ? "text-sky-100" : "text-gray-500"
-                  }`}
-                >
-                  Compartilhado por {sharedBy.join(", ")}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </aside>
-  );
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white pt-12">
@@ -538,22 +489,24 @@ export default function MainScreen() {
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-        {currentPage === "shared" &&
-          renderSidebar(
-            sharedDashboards,
-            selectedShared,
-            setSelectedShared,
-            "Nenhum dashboard compartilhado com você.",
-            true
-          )}
+        {currentPage === "shared" && (
+          <Sidebar
+            items={sharedDashboards}
+            selectedId={selectedShared}
+            onSelect={setSelectedShared}
+            emptyText={"Nenhum dashboard compartilhado com você."}
+            showSharedBy={true}
+          />
+        )}
 
-        {currentPage === "favorites" &&
-          renderSidebar(
-            savedDashboards,
-            selectedFavorite,
-            setSelectedFavorite,
-            "Nenhum dashboard favoritado."
-          )}
+        {currentPage === "favorites" && (
+          <Sidebar
+            items={savedDashboards}
+            selectedId={selectedFavorite}
+            onSelect={setSelectedFavorite}
+            emptyText={"Nenhum dashboard favoritado."}
+          />
+        )}
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-4 py-3">
@@ -578,53 +531,23 @@ export default function MainScreen() {
             {showDashboardFilters && (
               <div className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-3">
                 {currentPage === "city" && (
-                  <>
-                    <div className="w-[180px]">
-                      <Select
-                        label="UF"
-                        value={filters.state?.sigla ?? ""}
-                        onChange={(value) => {
-                          const selectedState = states.find(
-                            (state) => state.sigla === value
-                          );
-
-                          setFilters((current) => ({
-                            ...current,
-                            state: selectedState,
-                            city: undefined,
-                          }));
-                        }}
-                        placeholder="UF"
-                        options={states.map((state) => ({
-                          value: state.sigla,
-                          label: state.nome,
-                        }))}
-                      />
-                    </div>
-
-                    <div className="w-[220px]">
-                      <Select
-                        label="Cidade"
-                        value={filters.city?.nome ?? ""}
-                        onChange={(value) => {
-                          const selectedCity = cities.find(
-                            (city) => city.nome === value
-                          );
-
-                          setFilters((current) => ({
-                            ...current,
-                            city: selectedCity,
-                          }));
-                        }}
-                        disabled={!filters.state}
-                        placeholder="Cidade"
-                        options={cities.map((city) => ({
-                          value: city.nome,
-                          label: city.nome,
-                        }))}
-                      />
-                    </div>
-                  </>
+                  <div className="w-[260px]">
+                    <Select
+                      label="Município"
+                      value={filters.city ?? ""}
+                      onChange={(value) =>
+                        setFilters((current) => ({
+                          ...current,
+                          city: value || undefined,
+                        }))
+                      }
+                      placeholder="Município"
+                      options={AVAILABLE_CITIES.map((city) => ({
+                        value: city,
+                        label: city,
+                      }))}
+                    />
+                  </div>
                 )}
 
                 <div className="w-[170px]">
@@ -658,7 +581,7 @@ export default function MainScreen() {
             <div className="flex shrink-0 items-center gap-2">
               <button
                 type="button"
-                disabled={!activeDashboardId}
+                disabled={!canPersistDashboard}
                 onClick={openSharingModal}
                 className="rounded-md p-2 text-gray-800 transition-colors hover:bg-sky-800/10 disabled:pointer-events-none disabled:opacity-40"
                 aria-label="Compartilhar dashboard"
@@ -668,7 +591,7 @@ export default function MainScreen() {
               </button>
               <button
                 type="button"
-                disabled={!activeDashboardId}
+                disabled={!canPersistDashboard}
                 onClick={handleFavorite}
                 className="rounded-md p-2 text-gray-800 transition-colors hover:bg-sky-800/10 disabled:pointer-events-none disabled:opacity-40"
                 aria-label={
@@ -687,10 +610,11 @@ export default function MainScreen() {
           </div>
 
           <div className="min-h-0 flex-1 overflow-hidden">
-            {activeDashboard || currentPage === "national" || currentPage === "city" ? (
+            {activeDashboard ||
+            currentPage === "national" ||
+            currentPage === "city" ? (
               <Dashboard
                 mode={activeMode}
-                id={iframeDashboardId}
                 city={iframeCity}
                 startDate={iframeStartDate}
                 endDate={iframeEndDate}
@@ -774,8 +698,9 @@ export default function MainScreen() {
                       key={user._id}
                       onClick={() => handleShareLocally(user)}
                       className={`my-1 flex items-center justify-between rounded-md border border-gray-200 px-2 py-1 text-left shadow-sm hover:cursor-pointer hover:bg-sky-800/10 ${
-                        selectedUsers.map((item) => item._id).includes(user._id) &&
-                        "bg-sky-800/30"
+                        selectedUsers
+                          .map((item) => item._id)
+                          .includes(user._id) && "bg-sky-800/30"
                       }`}
                     >
                       <span>
@@ -793,7 +718,11 @@ export default function MainScreen() {
             text="Cancelar"
             onClick={() => setShowSharingModal(false)}
           />,
-          <Button key="confirm" text="Compartilhar" onClick={handleConfirmShare} />,
+          <Button
+            key="confirm"
+            text="Compartilhar"
+            onClick={handleConfirmShare}
+          />,
         ]}
         onClose={() => setShowSharingModal(false)}
         isOpen={showSharingModal}

@@ -9,7 +9,7 @@ export interface IDashboard {
   criado_por: IUser;
   data_criacao: Date;
   compartilhado_com: ISharedWith[];
-  salvos_por: IUser[];
+  salvos_por: Array<IUser | string>;
 }
 
 export interface ISharedWith {
@@ -22,4 +22,13 @@ export interface IUser {
   nome: string;
   username: string;
 }
+
+export type Pages = "national" | "city" | "shared" | "favorites";
+export type DashboardMode = "national" | "city";
+
+export type Filters = {
+  city?: string;
+  startDate: string;
+  endDate: string;
+};
 

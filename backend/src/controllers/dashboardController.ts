@@ -2,34 +2,6 @@ import { Response } from 'express';
 import Dashboard from '../models/Dashboard';
 import { AuthRequest } from '../middlewares/auth';
 
-export const getDashboards = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const dashboards = await Dashboard.find({ criado_por: { $ne: req.userId } })
-            .populate('criado_por', 'nome username')
-            .populate('compartilhado_com.from', 'nome username')
-            .populate('compartilhado_com.to', 'nome username');
-
-        res.status(200).json(dashboards);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-};
-
-export const getMyDashboards = async (req: AuthRequest, res: Response): Promise<void> => {
-    try {
-        const dashboards = await Dashboard.find({ criado_por: req.userId })
-            .populate('criado_por', 'nome username')
-            .populate('compartilhado_com.from', 'nome username')
-            .populate('compartilhado_com.to', 'nome username');
-
-        res.status(200).json(dashboards);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Erro interno do servidor' });
-    }
-};
-
 export const getSharedWithMe = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const dashboards = await Dashboard.find({ 'compartilhado_com.to': req.userId })
