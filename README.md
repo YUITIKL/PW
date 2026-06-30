@@ -15,7 +15,13 @@ O usuário, após autenticação, tem acesso à 4 abas:
 O usuário consegue compartilhar dashboards com outros usuários e favoritar dashboards, além de editar suas informações de cadastroe e excluir sua conta.
 
 O front-end foi desenvolvido utilizando TypeScript como linguagem de programação, Next.js como framework para o desenvolvimento web e TailwindCSS para estilização.
-[BE]
+
+O back-end foi desenvolvido em Node.js utilizando TypeScript e Express para a construção da API REST. A estrutura possui:
+1. Autenticação de usuários e proteção de rotas privadas via JWT
+2. CRUD de usuário, permitindo edição de cadastro e exclusão de conta.
+3. Endpoints para gerenciamento de dashboard, como favoritar ou desfavoritar
+4. Rotas para compartilhamento de dashboard entre usuários
+
 [BANCO/METABASE]
 
 
