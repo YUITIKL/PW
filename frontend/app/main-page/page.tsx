@@ -218,6 +218,10 @@ export default function MainScreen() {
     currentPage === "national" ||
     (currentPage === "city" && Boolean(filters.city));
 
+  const usersAvailableToShare = users.filter(
+    (user) => !sharedWith.map((item) => item._id).includes(user._id)
+  );
+
   const createCurrentDashboard = async () => {
     if (!token) return null;
 
@@ -322,7 +326,9 @@ export default function MainScreen() {
 
         const data = await response.json();
         setSharedWith(
-          data.filter((share: ISharedWith) => share.from._id === userId)
+          data
+            .filter((share: ISharedWith) => share.from._id === userId)
+            .map((share: ISharedWith) => share.to)
         );
       } catch (error) {
         console.error("Erro ao buscar compartilhamentos:", error);
@@ -332,7 +338,7 @@ export default function MainScreen() {
 
     getUsers();
     getSharesFromMe();
-  }, [activeDashboardId, token, userId]);
+  }, [activeDashboardId, reloadKey, token, userId]);
 
   const openSharingModal = async () => {
     const dashboard = await getOrCreateActiveDashboard();
@@ -661,7 +667,12 @@ export default function MainScreen() {
                           isOnCancelList && "bg-gray-200"
                         }`}
                       >
-                        <p>{user.nome}</p>
+                        <p>
+                          {user.nome}{" "}
+                          <span className="font-light italic text-gray-500">
+                            ({user.username})
+                          </span>
+                        </p>
 
                         <button
                           type="button"
@@ -687,12 +698,13 @@ export default function MainScreen() {
             <div className="flex flex-col">
               <p className="font-title text-base font-medium">Enviar para:</p>
               <div className="flex max-h-[200px] flex-col gap-1 overflow-y-auto">
-                {users
-                  .filter(
-                    (user) =>
-                      !sharedWith.map((item) => item._id).includes(user._id)
-                  )
-                  .map((user) => (
+                {usersAvailableToShare.length === 0 && (
+                  <p className="px-2 py-3 text-sm italic text-gray-500">
+                    Nenhum usuário disponível
+                  </p>
+                )}
+
+                {usersAvailableToShare.map((user) => (
                     <button
                       type="button"
                       key={user._id}
@@ -704,7 +716,10 @@ export default function MainScreen() {
                       }`}
                     >
                       <span>
-                        {user.nome} ({user.username})
+                        {user.nome}{" "}
+                        <span className="font-light italic text-gray-500">
+                          ({user.username})
+                        </span>
                       </span>
                     </button>
                   ))}
@@ -720,7 +735,7 @@ export default function MainScreen() {
           />,
           <Button
             key="confirm"
-            text="Compartilhar"
+            text="Salvar"
             onClick={handleConfirmShare}
           />,
         ]}
