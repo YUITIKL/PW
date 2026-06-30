@@ -178,7 +178,7 @@ export default function InitialScreen() {
         {/* Image */}
         <div className="md:w-1/2 w-full h-full justify-items-center">
           <h1 className="text-2xl lg:text-5xl font-title text-sky-900 font-semibold mb-2 md:mb-14">
-            Lorem Ipsum
+            WeatherCheck
           </h1>
           <Image
             src={worldSvg}
@@ -282,7 +282,7 @@ export default function InitialScreen() {
               className="text-sky-900 hover:text-sky-700 hover:cursor-pointer font-semibold"
               onClick={() => {
                 clearErrors();
-                setFetchError("")
+                setFetchError("");
                 setInitialScreen(
                   initialScreen === "signup" ? "login" : "signup"
                 );

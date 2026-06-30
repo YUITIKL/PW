@@ -1,6 +1,7 @@
 import {
   BookmarkSimpleIcon,
-  MagnifyingGlassIcon,
+  BuildingsIcon,
+  GlobeHemisphereWestIcon,
   PaperPlaneTiltIcon,
 } from "@phosphor-icons/react";
 import { useState } from "react";
@@ -19,8 +20,12 @@ export default function Tabs({ onChange }: TabsProps) {
 
   const tabs = [
     {
-      text: "Explorar",
-      icon: <MagnifyingGlassIcon size={18} className="mx-auto" />,
+      text: "Nacional",
+      icon: <GlobeHemisphereWestIcon size={18} className="mx-auto" />,
+    },
+    {
+      text: "Município",
+      icon: <BuildingsIcon size={18} className="mx-auto" />,
     },
     {
       text: "Compartilhados comigo",
@@ -33,7 +38,7 @@ export default function Tabs({ onChange }: TabsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-3 rounded-lg border border-sky-800 bg-white p-1 w-[900px] max-w-[95%]">
+    <div className="grid grid-cols-4 rounded-lg border border-sky-800 bg-white p-1 w-[1100px] max-w-[95%]">
       {tabs.map((tab, index) => (
         <button
           key={tab.text}
@@ -43,11 +48,7 @@ export default function Tabs({ onChange }: TabsProps) {
             ${
               active === index
                 ? `text-white bg-sky-900 ${
-                    index === 0
-                      ? "rounded-l-md"
-                      : index === 2
-                      ? "rounded-r-md"
-                      : ""
+                    index === 0 ? "rounded-l-md" : index === 3 ? "rounded-r-md" : ""
                   }`
                 : "text-sky-800 hover:text-sky-600"
             }

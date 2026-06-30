@@ -18,7 +18,7 @@ export default function MainScreen() {
             />
           </Link>
           <h1 className="text-xl font-bold font-title text-white">
-            Lorem Ipsum
+            WeatherCheck
           </h1>
           <SignOutIcon
             size={20}
