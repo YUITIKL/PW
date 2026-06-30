@@ -1,0 +1,141 @@
+### Configurações de Variáveis Globais
+@baseUrl = http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNDEyZDQ3ZjRiNjJhNjU3MzVkZmYzZCIsImlhdCI6MTc4MjY1NjMyNywiZXhwIjoxNzgzMjYxMTI3fQ.SkHWSFisrapnEDAVAJfoMQpI7NOzPAsUstQfDt5jMww
+@userIdExemplo1 = 6a412d47f4b62a65735dff3d
+@userIdExemplo2 = 6a4069778f6cc896f157164b
+@dashboardId = 6a412d9df4b62a65735dff3e
+
+### Register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "nome": "Eduardo",
+  "username": "eduardo",
+  "email": "eduardo3@test.com",
+  "password": "123456"
+}
+
+### Login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "eduardo2@test.com",
+  "password": "123456"
+}
+
+
+### Login com username
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+"email": "eduardoheitor",
+"password": "123456"
+}
+
+
+### Get Profile
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{token}}
+
+### Update Profile
+PUT {{baseUrl}}/users/profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Eduardo Heitor",
+  "username": "eduardoheitor"
+}
+
+### Update Password
+PUT {{baseUrl}}/users/password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "currentPassword": "123456",
+  "newPassword": "654321"
+}
+
+### Delete Account (Soft Delete)
+DELETE {{baseUrl}}/users/account
+Authorization: Bearer {{token}}
+
+### Get All / Explorar (Dashboards de outros usuários)
+GET {{baseUrl}}/dashboards
+Authorization: Bearer {{token}}
+
+### Get My Dashboards (Criados por mim / Admin)
+GET {{baseUrl}}/dashboards/mine
+Authorization: Bearer {{token}}
+
+### Get Shared With Me (Compartilhados comigo)
+GET {{baseUrl}}/dashboards/shared
+Authorization: Bearer {{token}}
+
+### Create Dashboard (Admin)
+POST {{baseUrl}}/dashboards
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Análise Temporal",
+  "descricao": "Variação de temperatura ao longo do tempo",
+  "metabase_dashboard_id": 1
+}
+
+### Update Dashboard (Admin)
+PUT {{baseUrl}}/dashboards/{{dashboardId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nome": "Análise Temporal Atualizada",
+  "descricao": "Nova descrição para o gráfico de clima"
+}
+
+### Delete Dashboard (Admin)
+DELETE {{baseUrl}}/dashboards/{{dashboardId}}
+Authorization: Bearer {{token}}
+
+### Verificar Compartilhamentos (Quem tem acesso a este painel?)
+GET {{baseUrl}}/dashboards/{{dashboardId}}/shares
+Authorization: Bearer {{token}}
+
+### Compartilhar em Lote (Adiciona uma lista de usuários)
+POST {{baseUrl}}/dashboards/{{dashboardId}}/share
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userIds": [
+    "{{userIdExemplo1}}",
+    "{{userIdExemplo2}}"
+  ]
+}
+
+### Remover Compartilhamento em Lote (Remove uma lista de usuários)
+DELETE {{baseUrl}}/dashboards/{{dashboardId}}/share
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userIds": [
+    "{{userIdExemplo1}}",
+    "{{userIdExemplo2}}"
+  ]
+}
+
+### Favoritar / Salvar Dashboard
+POST {{baseUrl}}/dashboards/{{dashboardId}}/favorite
+Authorization: Bearer {{token}}
+
+### Remover dos Favoritos
+DELETE {{baseUrl}}/dashboards/{{dashboardId}}/favorite
+Authorization: Bearer {{token}}
+
+### Buscar Medições com Filtro de Cidade e Período de Datas
+GET {{baseUrl}}/weather?cidade=Florianopolis&dataInicio=2026-01-01&dataFim=2026-01-31

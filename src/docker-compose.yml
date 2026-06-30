@@ -1,0 +1,25 @@
+services:
+  mongodb:
+    image: mongo:6
+    container_name: meteorologia-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: meteorologia
+    volumes:
+      - mongo-data:/data/db
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: meteorologia-metabase
+    restart: always
+    ports:
+      - "3002:3000"
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo-data:
