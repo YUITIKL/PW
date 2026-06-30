@@ -1,5 +1,5 @@
 ### Configurações de Variáveis Globais
-@baseUrl = https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api
+@baseUrl = https://projetoweb.beatriz.schmitt.vms.ufsc.br:3001/api
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNDEyZDQ3ZjRiNjJhNjU3MzVkZmYzZCIsImlhdCI6MTc4MjY1NjMyNywiZXhwIjoxNzgzMjYxMTI3fQ.SkHWSFisrapnEDAVAJfoMQpI7NOzPAsUstQfDt5jMww
 @userIdExemplo1 = 6a412d47f4b62a65735dff3d
 @userIdExemplo2 = 6a4069778f6cc896f157164b
