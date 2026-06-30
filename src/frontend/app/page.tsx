@@ -122,8 +122,8 @@ export default function InitialScreen() {
 
     const url =
       initialScreen === "login"
-        ? "http://localhost:3001/api/auth/login"
-        : "http://localhost:3001/api/auth/register";
+        ? "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/auth/login"
+        : "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/auth/register";
 
     const body =
       initialScreen === "login"

@@ -33,7 +33,7 @@ function FakeInput({ value, label }: { value: string; label: string }) {
 export default function Profile() {
   const { token, logout } = useAuth();
   const router = useRouter();
-  
+
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showUpdatePassword, setShowUpdatePassword] = useState(false);
 
@@ -47,7 +47,7 @@ export default function Profile() {
   };
 
   const [refetch, setRefetch] = useState(0);
-  
+
   const triggerRefetch = () => setRefetch(refetch + 1);
 
   // Dados modificados
@@ -100,7 +100,7 @@ export default function Profile() {
     const getUserData = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3001/api/users/profile",
+          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/profile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -153,7 +153,8 @@ export default function Profile() {
     }
 
     try {
-      const url = "http://localhost:3001/api/users/profile";
+      const url =
+        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/profile";
 
       const body = {
         nome: data.nome,
@@ -189,7 +190,8 @@ export default function Profile() {
     }
 
     try {
-      const url = "http://localhost:3001/api/users/password";
+      const url =
+        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/password";
 
       const body = {
         newPassword: data.password,
@@ -216,7 +218,8 @@ export default function Profile() {
   // Inativa perfil
   const handleDeleteProfile = async () => {
     try {
-      const url = "http://localhost:3001/api/users/account";
+      const url =
+        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/account";
 
       await fetch(url, {
         method: "DELETE",

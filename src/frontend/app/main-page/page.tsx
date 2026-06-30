@@ -40,10 +40,10 @@ import Sidebar from "@/components/Sidebar";
 
 // Por default a data de início é um mês atrás e a data final é hoje
 const INITIAL_FILTERS: Filters = {
+  city: AVAILABLE_CITIES[0],
   startDate: getDateOneMonthAgo(),
   endDate: formatDateInputValue(new Date()),
 };
-
 
 export default function MainScreen() {
   const { token, userId } = useAuth();
@@ -91,7 +91,7 @@ export default function MainScreen() {
     const getSavedDashboards = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3001/api/dashboards/saved",
+          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/saved",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -119,7 +119,7 @@ export default function MainScreen() {
     const getSharedDashboards = async () => {
       try {
         const response = await fetch(
-          "http://localhost:3001/api/dashboards/shared",
+          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/shared",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -241,31 +241,34 @@ export default function MainScreen() {
         : DEFAULT_CITY_DASHBOARD_ID;
 
     try {
-      const response = await fetch("http://localhost:3001/api/dashboards", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          nome:
-            mode === "national"
-              ? `Nacional - ${filters.startDate} - ${filters.endDate}`
-              : `${filters.city ?? "Municipal"} - ${filters.startDate} - ${
-                  filters.endDate
-                }`,
-          descricao:
-            mode === "national"
-              ? "Dashboard nacional"
-              : `Dashboard municipal${
-                  filters.city ? ` de ${filters.city}` : ""
-                }`,
-          metabase_dashboard_id: metabaseDashboardId,
-          data_inicio: filters.startDate,
-          data_fim: filters.endDate,
-          cidade: mode === "city" ? filters.city : undefined,
-        }),
-      });
+      const response = await fetch(
+        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nome:
+              mode === "national"
+                ? `Nacional - ${filters.startDate} - ${filters.endDate}`
+                : `${filters.city ?? "Municipal"} - ${filters.startDate} - ${
+                    filters.endDate
+                  }`,
+            descricao:
+              mode === "national"
+                ? "Dashboard nacional"
+                : `Dashboard municipal${
+                    filters.city ? ` de ${filters.city}` : ""
+                  }`,
+            metabase_dashboard_id: metabaseDashboardId,
+            data_inicio: filters.startDate,
+            data_fim: filters.endDate,
+            cidade: mode === "city" ? filters.city : undefined,
+          }),
+        }
+      );
 
       if (!response.ok) {
         showToast("Erro ao criar dashboard", "error");
@@ -295,11 +298,14 @@ export default function MainScreen() {
 
     const getUsers = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/users/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/users",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) return;
 
@@ -314,7 +320,7 @@ export default function MainScreen() {
     const getSharesFromMe = async () => {
       try {
         const response = await fetch(
-          `http://localhost:3001/api/dashboards/${activeDashboardId}/shares`,
+          `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${activeDashboardId}/shares`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -360,7 +366,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/dashboards/${dashboard._id}/favorite`,
+        `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${dashboard._id}/favorite`,
         {
           method: dashboardIsSaved ? "DELETE" : "POST",
           headers: {
@@ -396,7 +402,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/dashboards/${dashboard._id}/share`,
+        `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${dashboard._id}/share`,
         {
           method: "POST",
           headers: {
@@ -425,7 +431,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/api/dashboards/${activeDashboardId}/share`,
+        `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${activeDashboardId}/share`,
         {
           method: "DELETE",
           headers: {
@@ -515,29 +521,61 @@ export default function MainScreen() {
         )}
 
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-4 py-3">
-            <div className="min-w-0">
-              <h2 className="font-title text-lg font-semibold text-sky-900">
-                {currentPage === "national"
-                  ? "Dashboard nacional"
-                  : currentPage === "city"
-                  ? "Dashboard por município"
-                  : activeDashboard?.nome ?? "Selecione um dashboard"}
-              </h2>
-              {currentPage === "shared" &&
-                activeDashboard &&
-                getSharedBy(activeDashboard, userId).length > 0 && (
-                  <p className="text-sm italic text-gray-500">
-                    Compartilhado por{" "}
-                    {getSharedBy(activeDashboard, userId).join(", ")}
-                  </p>
-                )}
+          <div className="flex shrink-0 flex-col items-stretch gap-3 border-b border-gray-200 px-4 py-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex min-w-0 items-start justify-between gap-3 md:contents">
+              <div className="min-w-0">
+                <h2 className="font-title text-lg font-semibold text-sky-900">
+                  {currentPage === "national"
+                    ? "Dashboard nacional"
+                    : currentPage === "city"
+                    ? "Dashboard por município"
+                    : activeDashboard?.nome ?? "Selecione um dashboard"}
+                </h2>
+                {currentPage === "shared" &&
+                  activeDashboard &&
+                  getSharedBy(activeDashboard, userId).length > 0 && (
+                    <p className="text-sm italic text-gray-500">
+                      Compartilhado por{" "}
+                      {getSharedBy(activeDashboard, userId).join(", ")}
+                    </p>
+                  )}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2 md:order-3">
+                <button
+                  type="button"
+                  disabled={!canPersistDashboard}
+                  onClick={openSharingModal}
+                  className="rounded-md p-2 text-gray-800 transition-colors hover:bg-sky-800/10 disabled:pointer-events-none disabled:opacity-40"
+                  aria-label="Compartilhar dashboard"
+                  title="Compartilhar"
+                >
+                  <PaperPlaneTiltIcon size={22} weight="regular" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!canPersistDashboard}
+                  onClick={handleFavorite}
+                  className="rounded-md p-2 text-gray-800 transition-colors hover:bg-sky-800/10 disabled:pointer-events-none disabled:opacity-40"
+                  aria-label={
+                    isActiveSaved
+                      ? "Remover dashboard dos favoritos"
+                      : "Salvar dashboard nos favoritos"
+                  }
+                  title={isActiveSaved ? "Remover dos favoritos" : "Salvar"}
+                >
+                  <BookmarkSimpleIcon
+                    size={22}
+                    weight={isActiveSaved ? "fill" : "regular"}
+                  />
+                </button>
+              </div>
             </div>
 
             {showDashboardFilters && (
-              <div className="flex min-w-0 flex-1 flex-wrap items-end justify-end gap-3">
+              <div className="grid min-w-0 w-full grid-cols-2 items-end gap-3 md:flex md:flex-1 md:flex-wrap md:justify-end">
                 {currentPage === "city" && (
-                  <div className="w-[260px]">
+                  <div className="col-span-2 w-full md:w-[260px]">
                     <Select
                       label="Município"
                       value={filters.city ?? ""}
@@ -556,7 +594,7 @@ export default function MainScreen() {
                   </div>
                 )}
 
-                <div className="w-[170px]">
+                <div className="w-full md:w-[170px]">
                   <DateInput
                     label="Data inicial"
                     value={filters.startDate}
@@ -569,7 +607,7 @@ export default function MainScreen() {
                   />
                 </div>
 
-                <div className="w-[170px]">
+                <div className="w-full md:w-[170px]">
                   <DateInput
                     label="Data final"
                     value={filters.endDate}
@@ -583,36 +621,6 @@ export default function MainScreen() {
                 </div>
               </div>
             )}
-
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                disabled={!canPersistDashboard}
-                onClick={openSharingModal}
-                className="rounded-md p-2 text-gray-800 transition-colors hover:bg-sky-800/10 disabled:pointer-events-none disabled:opacity-40"
-                aria-label="Compartilhar dashboard"
-                title="Compartilhar"
-              >
-                <PaperPlaneTiltIcon size={22} weight="regular" />
-              </button>
-              <button
-                type="button"
-                disabled={!canPersistDashboard}
-                onClick={handleFavorite}
-                className="rounded-md p-2 text-gray-800 transition-colors hover:bg-sky-800/10 disabled:pointer-events-none disabled:opacity-40"
-                aria-label={
-                  isActiveSaved
-                    ? "Remover dashboard dos favoritos"
-                    : "Salvar dashboard nos favoritos"
-                }
-                title={isActiveSaved ? "Remover dos favoritos" : "Salvar"}
-              >
-                <BookmarkSimpleIcon
-                  size={22}
-                  weight={isActiveSaved ? "fill" : "regular"}
-                />
-              </button>
-            </div>
           </div>
 
           <div className="min-h-0 flex-1 overflow-hidden">
@@ -628,7 +636,7 @@ export default function MainScreen() {
             ) : (
               <div className="flex h-full min-h-[420px] items-center justify-center bg-gray-50">
                 <p className="font-title text-lg italic text-gray-400">
-                  Selecione um dashboard na lateral
+                  Selecione um dashboard
                 </p>
               </div>
             )}
@@ -705,24 +713,24 @@ export default function MainScreen() {
                 )}
 
                 {usersAvailableToShare.map((user) => (
-                    <button
-                      type="button"
-                      key={user._id}
-                      onClick={() => handleShareLocally(user)}
-                      className={`my-1 flex items-center justify-between rounded-md border border-gray-200 px-2 py-1 text-left shadow-sm hover:cursor-pointer hover:bg-sky-800/10 ${
-                        selectedUsers
-                          .map((item) => item._id)
-                          .includes(user._id) && "bg-sky-800/30"
-                      }`}
-                    >
-                      <span>
-                        {user.nome}{" "}
-                        <span className="font-light italic text-gray-500">
-                          ({user.username})
-                        </span>
+                  <button
+                    type="button"
+                    key={user._id}
+                    onClick={() => handleShareLocally(user)}
+                    className={`my-1 flex items-center justify-between rounded-md border border-gray-200 px-2 py-1 text-left shadow-sm hover:cursor-pointer hover:bg-sky-800/10 ${
+                      selectedUsers
+                        .map((item) => item._id)
+                        .includes(user._id) && "bg-sky-800/30"
+                    }`}
+                  >
+                    <span>
+                      {user.nome}{" "}
+                      <span className="font-light italic text-gray-500">
+                        ({user.username})
                       </span>
-                    </button>
-                  ))}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -733,11 +741,7 @@ export default function MainScreen() {
             text="Cancelar"
             onClick={() => setShowSharingModal(false)}
           />,
-          <Button
-            key="confirm"
-            text="Salvar"
-            onClick={handleConfirmShare}
-          />,
+          <Button key="confirm" text="Salvar" onClick={handleConfirmShare} />,
         ]}
         onClose={() => setShowSharingModal(false)}
         isOpen={showSharingModal}

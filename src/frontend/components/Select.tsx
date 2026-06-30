@@ -29,7 +29,7 @@ export default function Select({
     <div className="flex flex-col w-full text-black">
       <div className="flex flex-row items-center justify-between w-full">
         <p
-          className={`font-common text-sm font-semibold md:mb-2 ${
+          className={`font-common text-xs   ${
             disabled && "text-gray-600"
           } min-w-[250px]`}
         >

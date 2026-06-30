@@ -14,7 +14,7 @@ const METABASE_DASHBOARD_BASE_URL =
 
 export const DEFAULT_NATIONAL_DASHBOARD_ID = "9f134c46-a154-4805-beed-1f9847cb286e";
 
-export const DEFAULT_CITY_DASHBOARD_ID = "bf08fbad-87b3-404e-be32-8e7ecdaaa7e6";
+export const DEFAULT_CITY_DASHBOARD_ID = "90d5cce2-97c4-4a69-8e16-4ba918635ab5";
 
 // Cria a URL do dashboard
 function buildDashboardUrl({ mode, city, startDate, endDate }: DashboardProps) {
@@ -37,7 +37,7 @@ function buildDashboardUrl({ mode, city, startDate, endDate }: DashboardProps) {
     url.searchParams.set("cidade", city);
   }
 
-  url.hash = "hide_parameters=data_inicio,data_fim";
+  url.hash = "hide_parameters=data_inicio,data_fim,cidade";
 
   return url.toString();
 }
