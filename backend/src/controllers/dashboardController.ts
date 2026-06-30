@@ -152,11 +152,11 @@ export const createDashboard = async (req: AuthRequest, res: Response): Promise<
 export const updateDashboard = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const { nome, descricao } = req.body;
+        const { nome, descricao, metabase_dashboard_id, data_inicio, data_fim, cidade } = req.body;
 
         const dashboard = await Dashboard.findOneAndUpdate(
             { _id: id, criado_por: req.userId },
-            { nome, descricao },
+            { nome, descricao, metabase_dashboard_id, data_inicio, data_fim, cidade },
             { new: true }
         );
 
