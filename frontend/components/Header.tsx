@@ -17,9 +17,11 @@ export default function MainScreen() {
               className="text-white hover:cursor-pointer hover:text-gray-300"
             />
           </Link>
-          <h1 className="text-xl font-bold font-title text-white">
-            WeatherCheck
-          </h1>
+          <Link href="/main-page">
+            <h1 className="text-xl font-bold font-title text-white">
+              WeatherCheck
+            </h1>
+          </Link>
           <SignOutIcon
             size={20}
             className="text-white hover:cursor-pointer hover:text-gray-300"
