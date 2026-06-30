@@ -100,7 +100,7 @@ export default function Profile() {
     const getUserData = async () => {
       try {
         const response = await fetch(
-          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/profile",
+          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/users/profile",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -154,7 +154,7 @@ export default function Profile() {
 
     try {
       const url =
-        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/profile";
+        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/users/profile";
 
       const body = {
         nome: data.nome,
@@ -191,7 +191,7 @@ export default function Profile() {
 
     try {
       const url =
-        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/password";
+        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/users/password";
 
       const body = {
         newPassword: data.password,
@@ -219,7 +219,7 @@ export default function Profile() {
   const handleDeleteProfile = async () => {
     try {
       const url =
-        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/account";
+        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/users/account";
 
       await fetch(url, {
         method: "DELETE",

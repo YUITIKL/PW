@@ -91,7 +91,7 @@ export default function MainScreen() {
     const getSavedDashboards = async () => {
       try {
         const response = await fetch(
-          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/saved",
+          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/dashboards/saved",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -119,7 +119,7 @@ export default function MainScreen() {
     const getSharedDashboards = async () => {
       try {
         const response = await fetch(
-          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/shared",
+          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/dashboards/shared",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -242,7 +242,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards",
+        "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/dashboards",
         {
           method: "POST",
           headers: {
@@ -299,7 +299,7 @@ export default function MainScreen() {
     const getUsers = async () => {
       try {
         const response = await fetch(
-          "http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/users/users",
+          "https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/users/users",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -320,7 +320,7 @@ export default function MainScreen() {
     const getSharesFromMe = async () => {
       try {
         const response = await fetch(
-          `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${activeDashboardId}/shares`,
+          `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/dashboards/${activeDashboardId}/shares`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -366,7 +366,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${dashboard._id}/favorite`,
+        `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/dashboards/${dashboard._id}/favorite`,
         {
           method: dashboardIsSaved ? "DELETE" : "POST",
           headers: {
@@ -402,7 +402,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${dashboard._id}/share`,
+        `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/dashboards/${dashboard._id}/share`,
         {
           method: "POST",
           headers: {
@@ -431,7 +431,7 @@ export default function MainScreen() {
 
     try {
       const response = await fetch(
-        `http://Dashboard.yuiti.kanekiyo.vms.ufsc.br/api/dashboards/${activeDashboardId}/share`,
+        `https://projetoweb.beatriz.schmitt.vms.ufsc.br:3010/api/dashboards/${activeDashboardId}/share`,
         {
           method: "DELETE",
           headers: {
